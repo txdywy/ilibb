@@ -111,16 +111,47 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
       }
 
       // Generate emojis for facilities
-      let emojis: string[] = [];
+      let emojisData: {emoji: string, name: string, desc: string}[] = [];
       if (lib.facilities) {
-        emojis = lib.facilities.map((f: string) => getEmojiForFacility(f)).filter(Boolean);
+        emojisData = lib.facilities.map((f: string) => ({
+          emoji: getEmojiForFacility(f),
+          name: f,
+          desc: lib.score?.facility_details?.[f] || '提供高品质的阅读与自习服务。'
+        })).filter((e: any) => e.emoji);
       }
-      if (lib.opening_hours?.includes('24小时') && !emojis.includes('🌙')) {
-        emojis.unshift('🌙'); // 24H gets priority
+      if (lib.opening_hours?.includes('24小时') && !emojisData.find((e: any) => e.emoji === '🌙')) {
+        emojisData.unshift({
+          emoji: '🌙',
+          name: '24h',
+          desc: lib.score?.facility_details?.['24h'] || '全天候不打烊的深夜避风港。'
+        }); // 24H gets priority
       }
-      // Limit to max 3 emojis to not clutter the map
-      emojis = [...new Set(emojis)].slice(0, 3);
-      const emojiHtml = emojis.length > 0 ? `<div class="marker-emojis">${emojis.join('')}</div>` : '';
+      
+      // Ensure uniqueness based on emoji and limit to 3
+      const uniqueEmojis = new Map();
+      emojisData.forEach(item => {
+        if (!uniqueEmojis.has(item.emoji)) {
+          uniqueEmojis.set(item.emoji, item);
+        }
+      });
+      emojisData = Array.from(uniqueEmojis.values()).slice(0, 3);
+      
+      const emojiHtml = emojisData.length > 0 ? `
+        <div class="marker-emojis-container">
+          ${emojisData.map(e => `
+            <div class="map-emoji-item">
+              <span class="m-emoji">${e.emoji}</span>
+              <div class="map-emoji-tooltip">
+                <div class="m-tt-header">
+                  <span class="m-tt-emoji">${e.emoji}</span>
+                  <span class="m-tt-title">${e.name}</span>
+                </div>
+                <p class="m-tt-desc">${e.desc}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
 
       // Create a fancy marker for AMap
       const marker = new AMap.Marker({

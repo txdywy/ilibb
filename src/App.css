@@ -494,32 +494,90 @@ body {
   z-index: 999;
 }
 
-.marker-emojis {
+.marker-emojis-container {
   position: absolute;
   top: -26px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  pointer-events: auto; /* Enable hover on items */
+  z-index: 100;
+}
+
+.map-emoji-item {
+  position: relative;
   background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 2px 6px;
   font-size: 14px;
-  display: flex;
-  gap: 2px;
-  white-space: nowrap;
+  cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  opacity: 0.9;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.custom-marker-wrapper:hover .marker-emojis {
-  opacity: 1;
-  top: -32px;
-  transform: translateX(-50%) scale(1.1);
+.custom-marker-wrapper:hover .map-emoji-item {
   background: rgba(15, 23, 42, 0.9);
   border-color: var(--m-color, var(--accent-color));
+}
+
+.map-emoji-item:hover {
+  transform: translateY(-4px) scale(1.1);
+  z-index: 101;
+}
+
+.map-emoji-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px) scale(0.95);
+  width: max-content;
+  max-width: 220px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--m-color, var(--accent-color));
+  border-radius: 12px;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+}
+
+.map-emoji-item:hover .map-emoji-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.m-tt-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+.m-tt-emoji {
+  font-size: 1.1rem;
+}
+
+.m-tt-title {
+  font-weight: 700;
+  color: var(--m-color, var(--accent-color));
+  font-size: 0.85rem;
+}
+
+.m-tt-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  white-space: normal;
+  text-align: left;
 }
 
 @keyframes slideIn {
