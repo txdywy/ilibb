@@ -157,13 +157,13 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
         });
       }
       
-      const uniqueEmojis = new Map();
+      const emojiRegistry = new globalThis.Map<string, {emoji: string, name: string, desc: string}>();
       emojisData.forEach(item => {
-        if (!uniqueEmojis.has(item.emoji)) {
-          uniqueEmojis.set(item.emoji, item);
+        if (!emojiRegistry.has(item.emoji)) {
+          emojiRegistry.set(item.emoji, item);
         }
       });
-      emojisData = Array.from(uniqueEmojis.values()).slice(0, 3);
+      emojisData = Array.from(emojiRegistry.values()).slice(0, 3);
       
       const emojiHtml = emojisData.length > 0 ? `
         <div class="marker-emojis-container">

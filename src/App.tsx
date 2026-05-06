@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Map from './components/map/Map';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip, Cell
+  BarChart, Bar, XAxis, Tooltip as ReTooltip, Cell
 } from 'recharts';
 import './App.css';
 
