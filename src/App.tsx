@@ -7,8 +7,8 @@ function App() {
   const [selectedLib, setSelectedLib] = useState<any>(null);
 
   useEffect(() => {
-    // In production, this fetches the generated JSON
-    fetch('/data/libraries.json')
+    // Using relative path to work on both custom domains and gh-pages subpaths
+    fetch('data/libraries.json')
       .then(res => res.json())
       .then(data => setLibraries(data))
       .catch(err => console.error('Failed to load libraries:', err));
