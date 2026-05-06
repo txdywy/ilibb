@@ -27,6 +27,19 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
       pitch: 45, // 3D Tilt
     });
 
+    // Load Geolocation Plugin
+    AMap.plugin('AMap.Geolocation', function() {
+      const geolocation = new AMap.Geolocation({
+        enableHighAccuracy: true, // Set to true to use high accuracy
+        timeout: 10000,           // Timeout in milliseconds
+        position: 'RB',           // Position of the control (Right Bottom)
+        offset: [20, 20],         // Offset from the position
+        zoomToAccuracy: true,     // Zoom map to accuracy area
+        buttonPosition: 'RB'
+      });
+      mapInstance.current.addControl(geolocation);
+    });
+
     return () => {
       if (mapInstance.current) {
         mapInstance.current.destroy();

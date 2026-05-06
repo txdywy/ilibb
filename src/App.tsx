@@ -6,6 +6,7 @@ function App() {
   const [libraries, setLibraries] = useState([]);
   const [selectedLib, setSelectedLib] = useState<any>(null);
   const [filterDistrict, setFilterDistrict] = useState<string>('全部');
+  const [filterTag, setFilterTag] = useState<string>('全部');
 
   useEffect(() => {
     fetch('data/libraries.json')
@@ -15,10 +16,27 @@ function App() {
   }, []);
 
   const districts = ['全部', ...Array.from(new Set(libraries.map((l: any) => l.district))).filter(Boolean)];
+  const tags = ['全部', '24h', '自习室', 'Wi-Fi'];
   
-  const filteredLibraries = libraries.filter((l: any) => 
-    filterDistrict === '全部' || l.district === filterDistrict
-  );
+  const filteredLibraries = libraries.filter((l: any) => {
+    const matchDistrict = filterDistrict === '全部' || l.district === filterDistrict;
+    
+    // For '24h', check both facilities array and opening_hours string
+    let matchTag = true;
+    if (filterTag !== '全部') {
+      const hasFacility = l.facilities?.includes(filterTag);
+      const is24HString = filterTag === '24h' && (l.opening_hours.includes('24小时') || l.facilities?.includes('24h'));
+      matchTag = hasFacility || is24HString;
+    }
+    
+    return matchDistrict && matchTag;
+  });
+
+  const handleNavigate = (lib: any) => {
+    // Generate a universal URI for AMap web navigation
+    const uri = `https://uri.amap.com/marker?position=${lib.lng},${lib.lat}&name=${encodeURIComponent(lib.name)}&coordinate=gaode&callnative=1`;
+    window.open(uri, '_blank');
+  };
 
   return (
     <div className="app-container">
@@ -27,16 +45,35 @@ function App() {
           <h1>北京免费图书馆雷达</h1>
           <span className="live-tag">LIVE DATA</span>
         </div>
-        <div className="district-filters">
-          {districts.map(d => (
-            <button 
-              key={d} 
-              className={`filter-chip ${filterDistrict === d ? 'active' : ''}`}
-              onClick={() => setFilterDistrict(d)}
-            >
-              {d}
-            </button>
-          ))}
+        <div className="header-filters">
+          <div className="filter-group">
+            <span className="filter-label">区域:</span>
+            <div className="district-filters">
+              {districts.map(d => (
+                <button 
+                  key={d} 
+                  className={`filter-chip ${filterDistrict === d ? 'active' : ''}`}
+                  onClick={() => setFilterDistrict(d as string)}
+                >
+                  {d as React.ReactNode}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">特色:</span>
+            <div className="district-filters">
+              {tags.map(t => (
+                <button 
+                  key={t} 
+                  className={`filter-chip ${filterTag === t ? 'active special' : ''}`}
+                  onClick={() => setFilterTag(t)}
+                >
+                  {t === '24h' ? '24小时' : t}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </header>
       
@@ -62,9 +99,9 @@ function App() {
 
             <div className="facility-tags">
               {selectedLib.facilities?.map((f: string) => (
-                <span key={f} className="f-tag">{f}</span>
+                <span key={f} className={`f-tag ${f.toLowerCase() === '24h' ? 'special' : ''}`}>{f}</span>
               ))}
-              {selectedLib.opening_hours.includes('24小时') && <span className="f-tag special">24H</span>}
+              {!selectedLib.facilities?.includes('24h') && selectedLib.opening_hours.includes('24小时') && <span className="f-tag special">24h</span>}
             </div>
 
             <div className="info-grid">
@@ -83,9 +120,14 @@ function App() {
               <p>{selectedLib.evidence_text}</p>
             </div>
 
-            <a href={selectedLib.source_url} target="_blank" rel="noreferrer" className="source-btn">
-              查看数据来源
-            </a>
+            <div className="action-buttons">
+              <button onClick={() => handleNavigate(selectedLib)} className="nav-btn">
+                📍 一键导航
+              </button>
+              <a href={selectedLib.source_url} target="_blank" rel="noreferrer" className="source-btn">
+                查看来源
+              </a>
+            </div>
           </div>
         )}
       </main>
@@ -96,7 +138,7 @@ function App() {
           <p>基于 AI 多维度评分推荐</p>
         </div>
         <ul className="rank-list">
-          {libraries
+          {filteredLibraries
             .sort((a: any, b: any) => (b.score?.total || 0) - (a.score?.total || 0))
             .slice(0, 15)
             .map((lib: any, index) => (
