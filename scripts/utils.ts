@@ -72,7 +72,11 @@ export async function getAiScore(libraryInfo: any) {
       F. 设施完整度 10%
       G. 特色加分 5%
       
-      请输出 JSON 格式，包含 total (总分), details (各项分数), 和 recommendation (一句精炼的推荐理由)。
+      请输出 JSON 格式，包含：
+      - total: 总分 (数字)
+      - details: 各项分数 (对象)
+      - recommendation: 一句精炼的推荐理由 (字符串)
+      - facility_details: 一个对象，键为 libraryInfo.facilities 中的每一项，值为一句针对该图书馆该设施的详细、洋气的描述（如："每个座位均配备隐藏式五孔插座及USB快充口"）。
       不要输出任何多余的文字。
     `;
 
@@ -99,6 +103,31 @@ export async function getAiScore(libraryInfo: any) {
     
     // Heuristic fallback
     const baseScore = 70 + Math.floor(Math.random() * 20);
+    
+    // Generate fake rich details for facilities
+    const facility_details: Record<string, string> = {};
+    const defaultDetails: Record<string, string> = {
+      '24h': '全天候不打烊的深夜避风港，配备智能门禁，刷身份证即可随时进入。',
+      'Wi-Fi': '全馆覆盖千兆高速无线网络，支持多设备同时流畅在线。',
+      '自习室': '沉浸式静音自习区，配备护眼级阅读灯与符合人体工学的人文座椅。',
+      '自习区': '沉浸式静音自习区，配备护眼级阅读灯与符合人体工学的人文座椅。',
+      '咖啡厅': '馆内设有精品咖啡角，手冲咖啡与现烤烘焙带来全方位的感官享受。',
+      '特色建筑': '由知名建筑师操刀设计，极具美学张力的空间结构，光影交错的视觉盛宴。',
+      '电源插座': '桌面内置隐藏式五孔插座与多协议USB快充接口，告别续航焦虑。',
+      '地铁直达': '出站即达的极致通勤体验，无缝连接城市公共交通枢纽。',
+      '免预约': '打破繁琐门槛，即来即读，享受说走就走的阅读自由。',
+      '隔音舱': '太空舱级独立静音空间，完美隔绝外界喧嚣，适合线上会议或专注冥想。',
+      '存包柜': '人脸识别/密码智能储物系统，大容量设计，安全寄存无忧。',
+      '免费饮水': '多点位分布智能直饮水机，提供多档温控纯净水，守护健康。',
+      '智能选座': '全息数据选座系统，支持扫码签到与暂离保护，杜绝无效占座。'
+    };
+    
+    if (libraryInfo.facilities) {
+      libraryInfo.facilities.forEach((f: string) => {
+        facility_details[f] = defaultDetails[f] || `提供高品质的${f}服务体验。`;
+      });
+    }
+
     return {
       total: baseScore,
       details: {
@@ -110,7 +139,8 @@ export async function getAiScore(libraryInfo: any) {
         facilities: 80,
         special: 10
       },
-      recommendation: `[自动生成] ${libraryInfo.name} 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。`
+      recommendation: `[自动生成] ${libraryInfo.name} 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。`,
+      facility_details
     };
   }
 }

@@ -325,22 +325,94 @@ body {
 .facility-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 25px;
 }
 
-.f-tag {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+.f-tag-wrapper {
+  position: relative;
 }
 
-.f-tag.special {
+.f-tag-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.f-tag-wrapper:hover .f-tag-content {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+  transform: translateY(-2px);
+}
+
+.f-tag-wrapper.special .f-tag-content {
   border-color: var(--danger-color);
   color: var(--danger-color);
+}
+
+.f-tag-wrapper.special:hover .f-tag-content {
+  background: rgba(244, 63, 94, 0.1);
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.2);
+}
+
+.f-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px) scale(0.95);
+  width: max-content;
+  max-width: 250px;
+  padding: 15px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.f-tag-wrapper:hover .f-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.f-tt-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.f-tt-emoji {
+  font-size: 1.2rem;
+}
+
+.f-tt-title {
+  font-weight: 700;
+  color: var(--accent-color);
+  font-size: 0.9rem;
+}
+
+.f-tag-wrapper.special .f-tt-title {
+  color: var(--danger-color);
+}
+
+.f-tt-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: normal;
 }
 
 .info-grid {

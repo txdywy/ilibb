@@ -2,6 +2,32 @@ import { useState, useEffect } from 'react';
 import Map from './components/map/Map';
 import './App.css';
 
+const getEmojiForFacility = (f: string) => {
+  const map: Record<string, string> = {
+    '24h': '🌙',
+    'wi-fi': '📶',
+    '自习室': '📖',
+    '自习区': '📖',
+    '咖啡厅': '☕',
+    '少儿区': '🧸',
+    '特色建筑': '🏛️',
+    '教堂建筑': '⛪',
+    '四合院': '⛩️',
+    '古建': '⛩️',
+    '餐厅': '🍴',
+    '数字资源': '💻',
+    '充电': '⚡',
+    '电源插座': '🔌',
+    '地铁直达': '🚇',
+    '免预约': '🚶‍♂️',
+    '隔音舱': '🤫',
+    '免费饮水': '💧',
+    '智能选座': '📱',
+    '存包柜': '🛅'
+  };
+  return map[f.toLowerCase()] || '✨';
+};
+
 function App() {
   const [libraries, setLibraries] = useState([]);
   const [selectedLib, setSelectedLib] = useState<any>(null);
@@ -99,9 +125,35 @@ function App() {
 
             <div className="facility-tags">
               {selectedLib.facilities?.map((f: string) => (
-                <span key={f} className={`f-tag ${f.toLowerCase() === '24h' ? 'special' : ''}`}>{f}</span>
+                <div key={f} className={`f-tag-wrapper ${f.toLowerCase() === '24h' ? 'special' : ''}`}>
+                  <div className="f-tag-content">
+                    <span className="f-emoji">{getEmojiForFacility(f)}</span>
+                    <span className="f-name">{f}</span>
+                  </div>
+                  <div className="f-tooltip glass-card">
+                    <div className="f-tt-header">
+                      <span className="f-tt-emoji">{getEmojiForFacility(f)}</span>
+                      <span className="f-tt-title">{f}</span>
+                    </div>
+                    <p className="f-tt-desc">{selectedLib.score?.facility_details?.[f] || '提供高品质的服务体验'}</p>
+                  </div>
+                </div>
               ))}
-              {!selectedLib.facilities?.includes('24h') && selectedLib.opening_hours.includes('24小时') && <span className="f-tag special">24h</span>}
+              {!selectedLib.facilities?.includes('24h') && selectedLib.opening_hours.includes('24小时') && (
+                <div className="f-tag-wrapper special">
+                  <div className="f-tag-content">
+                    <span className="f-emoji">🌙</span>
+                    <span className="f-name">24h</span>
+                  </div>
+                  <div className="f-tooltip glass-card">
+                    <div className="f-tt-header">
+                      <span className="f-tt-emoji">🌙</span>
+                      <span className="f-tt-title">24h</span>
+                    </div>
+                    <p className="f-tt-desc">{selectedLib.score?.facility_details?.['24h'] || '全天候不打烊的深夜避风港。'}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="info-grid">
