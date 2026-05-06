@@ -1,0 +1,128 @@
+[
+  {
+    "name": "丰台区图书馆大红门馆",
+    "address": "丰台区南苑路7号",
+    "lat": 39.8574,
+    "lng": 116.398,
+    "opening_hours": "周二至周五 9:00-19:00；周六日 9:00-17:00",
+    "phone": "010-87012345",
+    "is_free": true,
+    "evidence_text": "丰台区图书馆所有公共图书馆均向市民免费开放",
+    "source_url": "http://www.ftlib.cn/",
+    "id": "5Liw5Y+w5Y",
+    "update_time": "2026-05-06T13:07:00.968Z",
+    "score": {
+      "total": 70,
+      "details": {
+        "free_credibility": 90,
+        "opening_hours": 80,
+        "accessibility": 85,
+        "environment": 75,
+        "surrounding": 70,
+        "facilities": 80,
+        "special": 10
+      },
+      "recommendation": "[自动生成] 丰台区图书馆大红门馆 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。"
+    }
+  },
+  {
+    "name": "丰台区图书馆北大地馆",
+    "address": "丰台区西四环南路64号",
+    "lat": 39.8656,
+    "lng": 116.2865,
+    "opening_hours": "周二至周五 9:00-19:00；周六日 9:00-17:00",
+    "is_free": true,
+    "evidence_text": "丰台区图书馆所有公共图书馆均向市民免费开放",
+    "source_url": "http://www.ftlib.cn/",
+    "id": "5Liw5Y+w5Y",
+    "update_time": "2026-05-06T13:07:00.969Z",
+    "score": {
+      "total": 81,
+      "details": {
+        "free_credibility": 90,
+        "opening_hours": 80,
+        "accessibility": 85,
+        "environment": 75,
+        "surrounding": 70,
+        "facilities": 80,
+        "special": 10
+      },
+      "recommendation": "[自动生成] 丰台区图书馆北大地馆 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。"
+    }
+  },
+  {
+    "name": "大兴区图书馆总馆",
+    "address": "大兴区黄村镇西大街11号",
+    "lat": 39.7317,
+    "lng": 116.3305,
+    "opening_hours": "周一至周日 9:00-24:00",
+    "is_free": true,
+    "evidence_text": "大兴区图书馆是国家一级图书馆，全年365天免费开放",
+    "source_url": "http://www.bplisn.net.cn/",
+    "id": "5aSn5YW05Y",
+    "update_time": "2026-05-06T13:07:00.969Z",
+    "score": {
+      "total": 89,
+      "details": {
+        "free_credibility": 90,
+        "opening_hours": 80,
+        "accessibility": 85,
+        "environment": 75,
+        "surrounding": 70,
+        "facilities": 80,
+        "special": 10
+      },
+      "recommendation": "[自动生成] 大兴区图书馆总馆 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。"
+    }
+  },
+  {
+    "name": "首都图书馆",
+    "address": "朝阳区东三环南路88号",
+    "lat": 39.869,
+    "lng": 116.4565,
+    "opening_hours": "09:00-19:30",
+    "is_free": true,
+    "evidence_text": "北京市属大型公共图书馆，基础服务免费",
+    "source_url": "https://www.clcn.net.cn/",
+    "id": "6aaW6YO95Z",
+    "update_time": "2026-05-06T13:07:00.969Z",
+    "score": {
+      "total": 85,
+      "details": {
+        "free_credibility": 90,
+        "opening_hours": 80,
+        "accessibility": 85,
+        "environment": 75,
+        "surrounding": 70,
+        "facilities": 80,
+        "special": 10
+      },
+      "recommendation": "[自动生成] 首都图书馆 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。"
+    }
+  },
+  {
+    "name": "朝阳区图书馆(数字化中心)",
+    "address": "朝阳区广渠路66号院3号楼",
+    "lat": 39.8938,
+    "lng": 116.4955,
+    "opening_hours": "09:00-21:00",
+    "is_free": true,
+    "evidence_text": "朝阳区公共文化设施免费开放",
+    "source_url": "http://www.chylib.net/",
+    "id": "5pyd6Ziz5Y",
+    "update_time": "2026-05-06T13:07:00.969Z",
+    "score": {
+      "total": 78,
+      "details": {
+        "free_credibility": 90,
+        "opening_hours": 80,
+        "accessibility": 85,
+        "environment": 75,
+        "surrounding": 70,
+        "facilities": 80,
+        "special": 10
+      },
+      "recommendation": "[自动生成] 朝阳区图书馆(数字化中心) 是北京备受欢迎的免费阅读空间，环境安静，适合深度学习。"
+    }
+  }
+]
