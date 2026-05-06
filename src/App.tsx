@@ -7,7 +7,7 @@ function App() {
   const [selectedLib, setSelectedLib] = useState<any>(null);
 
   useEffect(() => {
-    // Using relative path to work on both custom domains and gh-pages subpaths
+    // The data folder inside public/ is served at the root path /data/
     fetch('data/libraries.json')
       .then(res => res.json())
       .then(data => setLibraries(data))
