@@ -55,13 +55,43 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
     mapInstance.current.clearMap();
 
     libraries.forEach((lib) => {
+      // Calculate visual intensity based on score
+      const score = lib.score?.total || 0;
+      let glowColor = 'var(--accent-color)'; // Default cyan
+      let glowSize = '10px';
+      let scale = 1;
+      let zIndex = 100;
+
+      if (score >= 85) {
+        glowColor = '#ffd700'; // Gold for top tier
+        glowSize = '20px';
+        scale = 1.3;
+        zIndex = 105;
+      } else if (score >= 80) {
+        glowColor = '#00f2fe'; // Bright cyan for high tier
+        glowSize = '15px';
+        scale = 1.1;
+        zIndex = 104;
+      } else if (score >= 75) {
+        glowColor = '#4facfe'; // Muted cyan for mid tier
+        glowSize = '8px';
+        scale = 0.9;
+        zIndex = 103;
+      } else {
+        glowColor = '#94a3b8'; // Grayish for others
+        glowSize = '4px';
+        scale = 0.7;
+        zIndex = 102;
+      }
+
       // Create a fancy marker for AMap
       const marker = new AMap.Marker({
         position: [lib.lng, lib.lat],
         title: lib.name,
         map: mapInstance.current,
+        zIndex: zIndex,
         // Optional: Custom content for glowing effect
-        content: '<div class="amap-marker-glow"></div>',
+        content: `<div class="amap-marker-glow" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale};"></div>`,
         offset: new AMap.Pixel(-10, -10),
       });
 

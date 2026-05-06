@@ -395,12 +395,19 @@ body {
 .amap-marker-glow {
   width: 16px;
   height: 16px;
-  background: var(--accent-color);
+  background: var(--m-color, var(--accent-color));
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+  box-shadow: 0 0 var(--m-glow, 10px) var(--m-color, var(--accent-color)), 0 0 calc(var(--m-glow, 10px) * 2) var(--m-color, var(--accent-color));
   border: 2px solid #fff;
   cursor: pointer;
-  transition: all 0.3s;
+  transform: scale(var(--m-scale, 1));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.amap-marker-glow:hover {
+  transform: scale(calc(var(--m-scale, 1) * 1.4));
+  box-shadow: 0 0 calc(var(--m-glow, 10px) * 2) var(--m-color, var(--accent-color)), 0 0 calc(var(--m-glow, 10px) * 4) var(--m-color, var(--accent-color));
+  z-index: 999;
 }
 
 @keyframes slideIn {
