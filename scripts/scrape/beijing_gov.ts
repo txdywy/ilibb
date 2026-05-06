@@ -223,6 +223,74 @@ async function scrapeFengtai() {
       evidence_text: '顺义区中心图书馆',
       source_url: 'http://www.shylib.net/',
       district: '顺义区'
+    },
+
+    // --- Special & Beautiful Community Libraries ---
+    {
+      name: '北京红楼公共藏书楼',
+      address: '西城区西四南大街26号',
+      lat: 39.9250, lng: 116.3700,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '由著名“红楼电影院”改造，集藏书楼与公共阅读于一体',
+      source_url: 'http://www.beijing.gov.cn/',
+      district: '西城区',
+      facilities: ['特色建筑', '自习区']
+    },
+    {
+      name: '模范书局·诗源圣所',
+      address: '西城区佟麟阁路85号',
+      lat: 39.9020, lng: 116.3650,
+      opening_hours: '10:00-18:30',
+      is_free: true,
+      evidence_text: '坐落于百年教堂内的最美书店，提供免费阅读座位',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '西城区',
+      facilities: ['教堂建筑', '咖啡厅']
+    },
+    {
+      name: '正阳书局(砖塔胡同店)',
+      address: '西城区西四南大街43号',
+      lat: 39.9240, lng: 116.3710,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '位于砖塔胡同内的四合院书房，充满老北京韵味',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '西城区',
+      facilities: ['四合院', '北京文献']
+    },
+    {
+      name: '广安门内街道城市书房',
+      address: '西城区广安门内大街',
+      lat: 39.8890, lng: 116.3600,
+      opening_hours: '24小时开放',
+      is_free: true,
+      evidence_text: '典型的“小而美”，提供自助借还、WiFi和充电，周边居民深夜自习首选',
+      source_url: 'http://www.beijing.gov.cn/',
+      district: '西城区',
+      facilities: ['24h', 'Wi-Fi', '自习室', '充电']
+    },
+    {
+      name: '西红门24小时城市书房',
+      address: '大兴区西红门镇',
+      lat: 39.7900, lng: 116.3300,
+      opening_hours: '24小时开放',
+      is_free: true,
+      evidence_text: '位于商业区与社区交汇处，南城代表性的智慧书房',
+      source_url: 'http://www.dxlib.net.cn/',
+      district: '大兴区',
+      facilities: ['24h', '自习区']
+    },
+    {
+      name: '中关村图书大厦(一层北厅)',
+      address: '海淀区左岸工社旁',
+      lat: 39.9830, lng: 116.3050,
+      opening_hours: '24小时营业',
+      is_free: true,
+      evidence_text: '24小时营业书店，提供舒适免费阅读区',
+      source_url: 'http://www.beijing.gov.cn/',
+      district: '海淀区',
+      facilities: ['24h', 'Wi-Fi', '自习区']
     }
   ];
 
