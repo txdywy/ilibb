@@ -20,7 +20,7 @@ async function scrapeFengtai() {
       evidence_text: '国家级公共图书馆，基础服务全部免费',
       source_url: 'http://www.nlc.cn/',
       district: '海淀区',
-      facilities: ['Wi-Fi', '自习室', '餐厅', '数字资源']
+      facilities: ['Wi-Fi', '自习室', '餐厅', '数字资源', '电源插座', '地铁直达', '存包柜', '免费饮水']
     },
     {
       name: '北京城市图书馆(森林书苑)',
@@ -31,7 +31,7 @@ async function scrapeFengtai() {
       evidence_text: '2024年世界最佳公共图书馆，潞云筑区域24小时开放',
       source_url: 'https://www.clcn.net.cn/',
       district: '通州区',
-      facilities: ['24h', 'Wi-Fi', '自习室', '少儿区', '咖啡厅']
+      facilities: ['24h', 'Wi-Fi', '自习室', '少儿区', '咖啡厅', '电源插座', '隔音舱', '智能选座', '免预约']
     },
     {
       name: '首都图书馆',
@@ -84,7 +84,7 @@ async function scrapeFengtai() {
       evidence_text: '2024年升级，全天候无人值守，刷身份证进入',
       source_url: 'http://www.beijing.gov.cn/',
       district: '海淀区',
-      facilities: ['24h', 'Wi-Fi', '自习区']
+      facilities: ['24h', 'Wi-Fi', '自习区', '电源插座', '免预约', '免费饮水']
     },
     {
       name: '西城区24小时城市书房',
@@ -119,7 +119,7 @@ async function scrapeFengtai() {
       evidence_text: '第45家城市书屋，主打“城市文化”特藏，提供延时开放服务',
       source_url: 'http://www.chylib.net/',
       district: '朝阳区',
-      facilities: ['特色建筑', '自习室']
+      facilities: ['特色建筑', '自习室', '电源插座', '咖啡厅']
     },
     {
       name: '朝阳城市书屋·良阅书房(郎园馆)',

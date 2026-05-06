@@ -16,7 +16,7 @@ function App() {
   }, []);
 
   const districts = ['全部', ...Array.from(new Set(libraries.map((l: any) => l.district))).filter(Boolean)];
-  const tags = ['全部', '24h', '自习室', 'Wi-Fi'];
+  const tags = ['全部', '24h', '自习室', 'Wi-Fi', '电源插座', '地铁直达', '免预约', '隔音舱'];
   
   const filteredLibraries = libraries.filter((l: any) => {
     const matchDistrict = filterDistrict === '全部' || l.district === filterDistrict;
