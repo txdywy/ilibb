@@ -112,13 +112,14 @@ async function scrapeFengtai() {
     // --- High Quality City Study Rooms (城市书房/书屋) ---
     {
       name: '朝阳城市书屋·首开书院馆',
-      address: '朝阳区朝阳公园路19号',
-      lat: 39.9400, lng: 116.4800,
-      opening_hours: '09:00-18:00',
+      address: '朝阳区安慧东里',
+      lat: 39.9950, lng: 116.4150,
+      opening_hours: '09:00-18:00 (提供延时服务)',
       is_free: true,
-      evidence_text: '朝阳城市书屋旗舰店，环境极佳',
+      evidence_text: '第45家城市书屋，主打“城市文化”特藏，提供延时开放服务',
       source_url: 'http://www.chylib.net/',
-      district: '朝阳区'
+      district: '朝阳区',
+      facilities: ['特色建筑', '自习室']
     },
     {
       name: '朝阳城市书屋·良阅书房(郎园馆)',
@@ -128,28 +129,74 @@ async function scrapeFengtai() {
       is_free: true,
       evidence_text: '文创园区内的城市书房，艺术氛围浓厚',
       source_url: 'http://www.chylib.net/',
-      district: '朝阳区'
+      district: '朝阳区',
+      facilities: ['特色建筑']
     },
     {
-      name: '大兴24小时城市书房(康顺园)',
-      address: '大兴区滨河街康顺园小区附近',
-      lat: 39.7350, lng: 116.3400,
+      name: '朝阳城市书屋·禧园馆',
+      address: '朝阳区北苑东路辅路与北苑中街交叉口东(禧园酒店内)',
+      lat: 40.0450, lng: 116.4250,
+      opening_hours: '10:00-20:00',
+      is_free: true,
+      evidence_text: '首家“书香酒店”主题，亲子阅读空间',
+      source_url: 'http://www.chylib.net/',
+      district: '朝阳区',
+      facilities: ['少儿区', '特色建筑']
+    },
+    {
+      name: '宸冰书坊',
+      address: '朝阳区朝外大街乙6号朝外SOHO',
+      lat: 39.9200, lng: 116.4500,
+      opening_hours: '10:00-20:00',
+      is_free: true,
+      evidence_text: 'CBD区域的高品质阅读空间，常举办文化沙龙',
+      source_url: 'http://www.chylib.net/',
+      district: '朝阳区',
+      facilities: ['特色建筑']
+    },
+    {
+      name: '朝阳区图书馆(小庄馆)24小时自助图书馆',
+      address: '朝阳区朝阳门外金台里17号',
+      lat: 39.9180, lng: 116.4650,
       opening_hours: '24小时开放',
       is_free: true,
-      evidence_text: '大兴区特色24小时无人值守空间',
-      source_url: 'http://www.dxlib.net.cn/',
-      district: '大兴区',
+      evidence_text: '365天、24小时全天候自助办证、借还书',
+      source_url: 'http://www.chylib.net/',
+      district: '朝阳区',
       facilities: ['24h']
     },
     {
-      name: '京杭大运河书院',
-      address: '通州区大运河森林公园内',
-      lat: 39.8650, lng: 116.7100,
-      opening_hours: '09:30-17:30',
+      name: '三联韬奋书店(三里屯店)',
+      address: '朝阳区三里屯西街中段',
+      lat: 39.9350, lng: 116.4550,
+      opening_hours: '24小时营业',
       is_free: true,
-      evidence_text: '仿宋建筑，河景阅读空间',
-      source_url: 'http://www.bjtzlib.net/',
-      district: '通州区'
+      evidence_text: '北京著名的“深夜书房”，免费阅读',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '朝阳区',
+      facilities: ['24h', '特色建筑']
+    },
+    {
+      name: '奥森书局',
+      address: '朝阳区奥林匹克森林公园南园内',
+      lat: 40.0150, lng: 116.3950,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '位于公园竹林中，环境极佳的免费阅读空间',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '朝阳区',
+      facilities: ['特色建筑']
+    },
+    {
+      name: '单向空间(郎园Station店)',
+      address: '朝阳区半截塔路53号郎园Station',
+      lat: 39.9700, lng: 116.5100,
+      opening_hours: '10:00-21:00',
+      is_free: true,
+      evidence_text: '文艺气息浓厚，提供免费大面积阅读区',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '朝阳区',
+      facilities: ['特色建筑']
     },
 
     // --- District Branch & Specialists ---
