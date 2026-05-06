@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Map from './components/map/Map';
+import { 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip, Cell
+} from 'recharts';
 import './App.css';
 
 const getEmojiForFacility = (f: string) => {
@@ -33,6 +37,7 @@ function App() {
   const [selectedLib, setSelectedLib] = useState<any>(null);
   const [filterDistrict, setFilterDistrict] = useState<string>('全部');
   const [filterTag, setFilterTag] = useState<string>('全部');
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     fetch('data/libraries.json')
@@ -41,25 +46,42 @@ function App() {
       .catch(err => console.error('Failed to load libraries:', err));
   }, []);
 
-  const districts = ['全部', ...Array.from(new Set(libraries.map((l: any) => l.district))).filter(Boolean)];
+  const districts = useMemo(() => ['全部', ...Array.from(new Set(libraries.map((l: any) => l.district))).filter(Boolean)], [libraries]);
   const tags = ['全部', '24h', '自习室', 'Wi-Fi', '电源插座', '地铁直达', '免预约', '隔音舱'];
   
-  const filteredLibraries = libraries.filter((l: any) => {
+  const filteredLibraries = useMemo(() => libraries.filter((l: any) => {
     const matchDistrict = filterDistrict === '全部' || l.district === filterDistrict;
-    
-    // For '24h', check both facilities array and opening_hours string
     let matchTag = true;
     if (filterTag !== '全部') {
-      const hasFacility = l.facilities?.includes(filterTag);
+      const hasFacility = l.facilities?.some((f: string) => f.toLowerCase() === filterTag.toLowerCase());
       const is24HString = filterTag === '24h' && (l.opening_hours.includes('24小时') || l.facilities?.includes('24h'));
       matchTag = hasFacility || is24HString;
     }
-    
     return matchDistrict && matchTag;
-  });
+  }), [libraries, filterDistrict, filterTag]);
+
+  const districtStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    libraries.forEach((l: any) => {
+      if (l.district) stats[l.district] = (stats[l.district] || 0) + 1;
+    });
+    return Object.entries(stats).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  }, [libraries]);
+
+  const radarData = useMemo(() => {
+    if (!selectedLib || !selectedLib.score?.details) return [];
+    const d = selectedLib.score.details;
+    return [
+      { subject: '免费度', A: d.free_credibility, fullMark: 100 },
+      { subject: '时间', A: d.opening_hours, fullMark: 100 },
+      { subject: '交通', A: d.accessibility, fullMark: 100 },
+      { subject: '环境', A: d.environment, fullMark: 100 },
+      { subject: '周边', A: d.surrounding, fullMark: 100 },
+      { subject: '设施', A: d.facilities, fullMark: 100 },
+    ];
+  }, [selectedLib]);
 
   const handleNavigate = (lib: any) => {
-    // Generate a universal URI for AMap web navigation
     const uri = `https://uri.amap.com/marker?position=${lib.lng},${lib.lat}&name=${encodeURIComponent(lib.name)}&coordinate=gaode&callnative=1`;
     window.open(uri, '_blank');
   };
@@ -71,6 +93,7 @@ function App() {
           <h1>北京免费图书馆雷达</h1>
           <span className="live-tag">LIVE DATA</span>
         </div>
+        
         <div className="header-filters">
           <div className="filter-group">
             <span className="filter-label">区域:</span>
@@ -79,9 +102,9 @@ function App() {
                 <button 
                   key={d} 
                   className={`filter-chip ${filterDistrict === d ? 'active' : ''}`}
-                  onClick={() => setFilterDistrict(d as string)}
+                  onClick={() => setFilterDistrict(d)}
                 >
-                  {d as React.ReactNode}
+                  {d}
                 </button>
               ))}
             </div>
@@ -101,11 +124,20 @@ function App() {
             </div>
           </div>
         </div>
+
+        <div className="header-actions">
+          <button 
+            className={`visual-toggle ${showHeatmap ? 'active' : ''}`}
+            onClick={() => setShowHeatmap(!showHeatmap)}
+          >
+            {showHeatmap ? '🔥 热力图已开启' : '📊 开启热力模式'}
+          </button>
+        </div>
       </header>
       
       <main className="main-content">
         <div className="map-wrapper">
-          <Map libraries={filteredLibraries} onMarkerClick={setSelectedLib} />
+          <Map libraries={filteredLibraries} onMarkerClick={setSelectedLib} showHeatmap={showHeatmap} />
         </div>
         
         {selectedLib && (
@@ -117,6 +149,22 @@ function App() {
             <div className="score-section">
               <div className="score-value">{selectedLib.score?.total || 'N/A'}</div>
               <div className="score-label">AI 综合评分</div>
+            </div>
+
+            <div className="radar-wrapper">
+              <ResponsiveContainer width="100%" height={200}>
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                  <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <Radar
+                    name={selectedLib.name}
+                    dataKey="A"
+                    stroke="var(--accent-color)"
+                    fill="var(--accent-color)"
+                    fillOpacity={0.5}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
             </div>
 
             <p className="recommendation">
@@ -139,21 +187,6 @@ function App() {
                   </div>
                 </div>
               ))}
-              {!selectedLib.facilities?.includes('24h') && selectedLib.opening_hours.includes('24小时') && (
-                <div className="f-tag-wrapper special">
-                  <div className="f-tag-content">
-                    <span className="f-emoji">🌙</span>
-                    <span className="f-name">24h</span>
-                  </div>
-                  <div className="f-tooltip glass-card">
-                    <div className="f-tt-header">
-                      <span className="f-tt-emoji">🌙</span>
-                      <span className="f-tt-title">24h</span>
-                    </div>
-                    <p className="f-tt-desc">{selectedLib.score?.facility_details?.['24h'] || '全天候不打烊的深夜避风港。'}</p>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="info-grid">
@@ -167,17 +200,12 @@ function App() {
               </div>
             </div>
 
-            <div className="evidence-box">
-              <label>免费证据</label>
-              <p>{selectedLib.evidence_text}</p>
-            </div>
-
             <div className="action-buttons">
               <button onClick={() => handleNavigate(selectedLib)} className="nav-btn">
                 📍 一键导航
               </button>
               <a href={selectedLib.source_url} target="_blank" rel="noreferrer" className="source-btn">
-                查看来源
+                来源
               </a>
             </div>
           </div>
@@ -186,11 +214,30 @@ function App() {
       
       <div className="sidebar glass-card">
         <div className="sidebar-header">
-          <h3>值得去排行榜</h3>
-          <p>基于 AI 多维度评分推荐</p>
+          <h3>数据洞察</h3>
+          <p>资源分布与评分榜单</p>
         </div>
+        
+        <div className="stats-chart-wrapper">
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={districtStats.slice(0, 5)}>
+              <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <ReTooltip 
+                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px' }}
+                itemStyle={{ color: '#00f2fe' }}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {districtStats.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={index === 0 ? '#00f2fe' : '#1e293b'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="stats-label">各区资源密度排行</div>
+        </div>
+
         <ul className="rank-list">
-          {filteredLibraries
+          {libraries
             .sort((a: any, b: any) => (b.score?.total || 0) - (a.score?.total || 0))
             .slice(0, 15)
             .map((lib: any, index) => (

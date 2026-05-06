@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 interface MapProps {
   libraries: any[];
   onMarkerClick: (lib: any) => void;
+  showHeatmap?: boolean;
 }
 
 const getEmojiForFacility = (f: string) => {
@@ -31,9 +32,10 @@ const getEmojiForFacility = (f: string) => {
   return map[f.toLowerCase()] || '';
 };
 
-const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
+const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
+  const heatmapInstance = useRef<any>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -56,14 +58,29 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
     // Load Geolocation Plugin
     AMap.plugin('AMap.Geolocation', function() {
       const geolocation = new AMap.Geolocation({
-        enableHighAccuracy: true, // Set to true to use high accuracy
-        timeout: 10000,           // Timeout in milliseconds
-        position: 'RB',           // Position of the control (Right Bottom)
-        offset: [20, 20],         // Offset from the position
-        zoomToAccuracy: true,     // Zoom map to accuracy area
+        enableHighAccuracy: true,
+        timeout: 10000,
+        position: 'RB',
+        offset: [20, 20],
+        zoomToAccuracy: true,
         buttonPosition: 'RB'
       });
       mapInstance.current.addControl(geolocation);
+    });
+
+    // Load Heatmap Plugin
+    AMap.plugin('AMap.Heatmap', function() {
+      heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
+        radius: 25,
+        opacity: [0, 0.8],
+        gradient: {
+          0.5: 'blue',
+          0.65: 'rgb(117,211,248)',
+          0.7: 'rgb(0,255,0)',
+          0.9: '#ffea00',
+          1.0: '#ff0000'
+        }
+      });
     });
 
     return () => {
@@ -80,37 +97,50 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
     const AMap = window.AMap;
     mapInstance.current.clearMap();
 
+    if (showHeatmap && heatmapInstance.current) {
+      const heatmapData = libraries.map(lib => ({
+        lng: lib.lng,
+        lat: lib.lat,
+        count: lib.score?.total || 70
+      }));
+      heatmapInstance.current.setDataSet({
+        data: heatmapData,
+        max: 100
+      });
+      heatmapInstance.current.show();
+    } else if (heatmapInstance.current) {
+      heatmapInstance.current.hide();
+    }
+
     libraries.forEach((lib) => {
-      // Calculate visual intensity based on score
       const score = lib.score?.total || 0;
-      let glowColor = 'var(--accent-color)'; // Default cyan
+      let glowColor = 'var(--accent-color)';
       let glowSize = '10px';
       let scale = 1;
       let zIndex = 100;
 
       if (score >= 85) {
-        glowColor = '#ffd700'; // Gold for top tier
+        glowColor = '#ffd700';
         glowSize = '20px';
         scale = 1.3;
         zIndex = 105;
       } else if (score >= 80) {
-        glowColor = '#00f2fe'; // Bright cyan for high tier
+        glowColor = '#00f2fe';
         glowSize = '15px';
         scale = 1.1;
         zIndex = 104;
       } else if (score >= 75) {
-        glowColor = '#4facfe'; // Muted cyan for mid tier
+        glowColor = '#4facfe';
         glowSize = '8px';
         scale = 0.9;
         zIndex = 103;
       } else {
-        glowColor = '#94a3b8'; // Grayish for others
+        glowColor = '#94a3b8';
         glowSize = '4px';
         scale = 0.7;
         zIndex = 102;
       }
 
-      // Generate emojis for facilities
       let emojisData: {emoji: string, name: string, desc: string}[] = [];
       if (lib.facilities) {
         emojisData = lib.facilities.map((f: string) => ({
@@ -124,10 +154,9 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
           emoji: '🌙',
           name: '24h',
           desc: lib.score?.facility_details?.['24h'] || '全天候不打烊的深夜避风港。'
-        }); // 24H gets priority
+        });
       }
       
-      // Ensure uniqueness based on emoji and limit to 3
       const uniqueEmojis = new Map();
       emojisData.forEach(item => {
         if (!uniqueEmojis.has(item.emoji)) {
@@ -153,14 +182,13 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
         </div>
       ` : '';
 
-      // Create a fancy marker for AMap
       const marker = new AMap.Marker({
         position: [lib.lng, lib.lat],
         title: lib.name,
         map: mapInstance.current,
         zIndex: zIndex,
         content: `
-          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale};">
+          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale}; opacity: ${showHeatmap ? 0.4 : 1};">
             ${emojiHtml}
             <div class="amap-marker-glow"></div>
           </div>
@@ -172,7 +200,7 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
         onMarkerClick(lib);
       });
     });
-  }, [libraries, onMarkerClick]);
+  }, [libraries, onMarkerClick, showHeatmap]);
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 };
