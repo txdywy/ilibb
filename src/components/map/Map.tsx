@@ -5,6 +5,25 @@ interface MapProps {
   onMarkerClick: (lib: any) => void;
 }
 
+const getEmojiForFacility = (f: string) => {
+  const map: Record<string, string> = {
+    '24h': '🌙',
+    'wi-fi': '📶',
+    '自习室': '📖',
+    '自习区': '📖',
+    '咖啡厅': '☕',
+    '少儿区': '🧸',
+    '特色建筑': '🏛️',
+    '教堂建筑': '⛪',
+    '四合院': '⛩️',
+    '古建': '⛩️',
+    '餐厅': '🍴',
+    '数字资源': '💻',
+    '充电': '⚡'
+  };
+  return map[f.toLowerCase()] || '';
+};
+
 const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
@@ -84,14 +103,30 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick }) => {
         zIndex = 102;
       }
 
+      // Generate emojis for facilities
+      let emojis: string[] = [];
+      if (lib.facilities) {
+        emojis = lib.facilities.map((f: string) => getEmojiForFacility(f)).filter(Boolean);
+      }
+      if (lib.opening_hours?.includes('24小时') && !emojis.includes('🌙')) {
+        emojis.unshift('🌙'); // 24H gets priority
+      }
+      // Limit to max 3 emojis to not clutter the map
+      emojis = [...new Set(emojis)].slice(0, 3);
+      const emojiHtml = emojis.length > 0 ? `<div class="marker-emojis">${emojis.join('')}</div>` : '';
+
       // Create a fancy marker for AMap
       const marker = new AMap.Marker({
         position: [lib.lng, lib.lat],
         title: lib.name,
         map: mapInstance.current,
         zIndex: zIndex,
-        // Optional: Custom content for glowing effect
-        content: `<div class="amap-marker-glow" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale};"></div>`,
+        content: `
+          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale};">
+            ${emojiHtml}
+            <div class="amap-marker-glow"></div>
+          </div>
+        `,
         offset: new AMap.Pixel(-10, -10),
       });
 
