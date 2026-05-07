@@ -630,5 +630,69 @@
       "Wi-Fi",
       "自习室"
     ]
+  },
+  {
+    "name": "北投爱琴海24小时智能文化空间",
+    "address": "通州区新华东街北投爱琴海购物公园内",
+    "lat": 39.9078,
+    "lng": 116.6601,
+    "opening_hours": "24小时开放",
+    "is_free": true,
+    "evidence_text": "纯公益空间，闹中取静。24小时安全开放，搭载人脸识别和自助借还设备",
+    "source_url": "http://www.bjtzlib.net/",
+    "district": "通州区",
+    "facilities": [
+      "24h",
+      "自习区",
+      "Wi-Fi",
+      "免预约"
+    ]
+  },
+  {
+    "name": "博书屋",
+    "address": "西城区德外大街87号德胜国际E座",
+    "lat": 39.9605,
+    "lng": 116.3762,
+    "opening_hours": "24小时营业",
+    "is_free": true,
+    "evidence_text": "专门为24小时设计的书店，环境温馨，有咖啡和文化沙龙",
+    "source_url": "http://www.xclib.org/",
+    "district": "西城区",
+    "facilities": [
+      "24h",
+      "咖啡厅",
+      "自习区",
+      "电源插座"
+    ]
+  },
+  {
+    "name": "花市新华书店",
+    "address": "东城区西花市大街134号",
+    "lat": 39.897,
+    "lng": 116.425,
+    "opening_hours": "24小时营业",
+    "is_free": true,
+    "evidence_text": "老牌新华书店的24小时尝试，环境朴实",
+    "source_url": "http://www.bjdclib.com/",
+    "district": "东城区",
+    "facilities": [
+      "24h",
+      "自习区"
+    ]
+  },
+  {
+    "name": "鲁谷文化中心图书馆",
+    "address": "石景山区鲁谷南路",
+    "lat": 39.895,
+    "lng": 116.22,
+    "opening_hours": "09:00-18:00",
+    "is_free": true,
+    "evidence_text": "全免费，有专门的中高考自习专区",
+    "source_url": "http://www.bjsjs.gov.cn/",
+    "district": "石景山区",
+    "facilities": [
+      "自习室",
+      "免预约"
+    ]
   }
 ]
