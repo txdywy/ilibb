@@ -39,7 +39,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
   const heatmapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
-  // 1. Unified Map Initialization with Plugin Guard
+  // 1. Unified Map Initialization
   useEffect(() => {
     let retryCount = 0;
     const maxRetries = 20;
@@ -66,7 +66,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
           pitch: 45,
         });
 
-        // Load Plugins with absolute certainty
+        // Load Plugins
         AMap.plugin(['AMap.Geolocation', 'AMap.Heatmap'], () => {
           if (!mapInstance.current) return;
           
@@ -82,17 +82,19 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
             mapInstance.current.addControl(geolocation);
           }
 
-          // Heatmap - Delayed construction to ensure instance is ready
+          // Heatmap - High Intensity Settings
           if (AMap.Heatmap) {
             heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-              radius: 25,
-              opacity: [0, 0.8],
+              radius: 40, // Increased radius for better visibility
+              opacity: [0, 0.9],
+              visible: false,
+              zIndex: 100,
               gradient: {
-                0.5: 'blue',
-                0.65: 'rgb(117,211,248)',
-                0.7: 'rgb(0,255,0)',
-                0.9: '#ffea00',
-                1.0: '#ff0000'
+                0.2: 'blue',
+                0.4: 'cyan',
+                0.6: 'lime',
+                0.8: 'yellow',
+                1.0: 'red'
               }
             });
           }
@@ -106,10 +108,6 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
 
     return () => {
       if (mapInstance.current) {
-        // Safe disposal of markers and heatmap
-        if (heatmapInstance.current && typeof heatmapInstance.current.setMap === 'function') {
-          heatmapInstance.current.setMap(null);
-        }
         mapInstance.current.destroy();
         mapInstance.current = null;
         heatmapInstance.current = null;
@@ -117,7 +115,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     };
   }, []);
 
-  // 2. Markers Rendering Logic
+  // 2. Markers Rendering
   useEffect(() => {
     if (!mapInstance.current) return;
     
@@ -127,8 +125,6 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
 
     markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
-
-    if (!Array.isArray(libraries)) return;
 
     libraries.forEach((lib) => {
       if (!lib || !lib.lng || !lib.lat) return;
@@ -190,34 +186,29 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Heatmap Sync with Defensive Logic
+  // 3. Heatmap Force Sync
   useEffect(() => {
     const hm = heatmapInstance.current;
     const mapContainer = mapRef.current;
     if (!mapContainer) return;
 
-    // Use CSS for marker opacity regardless of heatmap instance readiness
     if (showHeatmap) {
       mapContainer.classList.add('heatmap-mode');
+      if (hm && typeof hm.setDataSet === 'function' && libraries.length > 0) {
+        // Boost counts for better visibility
+        const heatmapData = libraries.filter(l => l && l.lng && l.lat).map(lib => ({
+          lng: Number(lib.lng),
+          lat: Number(lib.lat),
+          count: 50 // Standardize weight to force color blooms
+        }));
+        
+        console.log('Pushing Heatmap Data:', heatmapData.length);
+        hm.setDataSet({ data: heatmapData, max: 100 });
+        hm.show();
+      }
     } else {
       mapContainer.classList.remove('heatmap-mode');
-    }
-
-    // Defensive check for heatmap methods
-    if (hm && typeof hm.show === 'function' && typeof hm.hide === 'function') {
-      if (showHeatmap && Array.isArray(libraries) && libraries.length > 0) {
-        try {
-          const heatmapData = libraries.filter(l => l && l.lng && l.lat).map(lib => ({
-            lng: Number(lib.lng),
-            lat: Number(lib.lat),
-            count: Number(lib.score?.total || 70)
-          }));
-          hm.setDataSet({ data: heatmapData, max: 100 });
-          hm.show();
-        } catch (err) {
-          console.error('Heatmap data error:', err);
-        }
-      } else {
+      if (hm && typeof hm.hide === 'function') {
         hm.hide();
       }
     }
