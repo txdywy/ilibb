@@ -185,7 +185,29 @@ async function scrapeFengtai() {
       evidence_text: '位于公园竹林中，环境极佳的免费阅读空间',
       source_url: 'http://www.visitbeijing.com.cn/',
       district: '朝阳区',
-      facilities: ['特色建筑']
+      facilities: ['特色建筑', '免预约', '地铁直达']
+    },
+    {
+      name: '望京街道图书馆',
+      address: '朝阳区望京西园425楼三层',
+      lat: 40.0010, lng: 116.4710,
+      opening_hours: '周二至周日 08:30-17:00, 周一 13:00-17:00',
+      is_free: true,
+      evidence_text: '望京核心公益图书馆，支持全市通借通还',
+      source_url: 'http://www.beijing.gov.cn/',
+      district: '朝阳区',
+      facilities: ['Wi-Fi', '自习室', '免预约']
+    },
+    {
+      name: '北京晓书馆',
+      address: '朝阳区望京小街万科时代中心',
+      lat: 39.9950, lng: 116.4820,
+      opening_hours: '10:00-21:00 (周一闭馆)',
+      is_free: true,
+      evidence_text: '高颜值公益学习型图书馆，需通过微信提前预约',
+      source_url: 'https://www.xiaoshuguan.cn/',
+      district: '朝阳区',
+      facilities: ['特色建筑', '自习区', '咖啡厅']
     },
     {
       name: '单向空间(郎园Station店)',
