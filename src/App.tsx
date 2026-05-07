@@ -7,6 +7,7 @@ import {
 import './App.css';
 
 const getEmojiForFacility = (f: string) => {
+  if (!f) return '✨';
   const map: Record<string, string> = {
     '24h': '🌙',
     'wi-fi': '📶',
@@ -33,8 +34,9 @@ const getEmojiForFacility = (f: string) => {
 };
 
 function App() {
-  const [libraries, setLibraries] = useState([]);
+  const [libraries, setLibraries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedLib, setSelectedLib] = useState<any>(null);
   const [filterDistrict, setFilterDistrict] = useState<string>('全部');
   const [filterTag, setFilterTag] = useState<string>('全部');
@@ -42,36 +44,61 @@ function App() {
 
   useEffect(() => {
     fetch('data/libraries.json')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        setLibraries(data);
+        if (Array.isArray(data)) {
+          setLibraries(data);
+        } else {
+          console.error('Data is not an array:', data);
+          setLibraries([]);
+          setError('数据格式不正确');
+        }
         setLoading(false);
       })
       .catch(err => {
         console.error('Failed to load libraries:', err);
+        setError(err.message);
         setLoading(false);
       });
   }, []);
 
-  const districts = useMemo(() => ['全部', ...Array.from(new Set(libraries.map((l: any) => l.district))).filter(Boolean)], [libraries]);
+  const districts = useMemo(() => {
+    try {
+      if (!Array.isArray(libraries)) return ['全部'];
+      const set = new Set(libraries.map((l: any) => l?.district).filter(Boolean));
+      return ['全部', ...Array.from(set)];
+    } catch (e) {
+      return ['全部'];
+    }
+  }, [libraries]);
+
   const tags = ['全部', '24h', '自习室', 'Wi-Fi', '电源插座', '地铁直达', '免预约', '隔音舱'];
   
-  const filteredLibraries = useMemo(() => libraries.filter((l: any) => {
-    const matchDistrict = filterDistrict === '全部' || l.district === filterDistrict;
-    let matchTag = true;
-    if (filterTag !== '全部') {
-      const hasFacility = l.facilities?.some((f: string) => f.toLowerCase() === filterTag.toLowerCase());
-      const is24HString = filterTag === '24h' && (l.opening_hours.includes('24小时') || l.facilities?.includes('24h'));
-      matchTag = hasFacility || is24HString;
-    }
-    return matchDistrict && matchTag;
-  }), [libraries, filterDistrict, filterTag]);
+  const filteredLibraries = useMemo(() => {
+    if (!Array.isArray(libraries)) return [];
+    return libraries.filter((l: any) => {
+      if (!l) return false;
+      const matchDistrict = filterDistrict === '全部' || l.district === filterDistrict;
+      let matchTag = true;
+      if (filterTag !== '全部') {
+        const hasFacility = Array.isArray(l.facilities) && l.facilities.some((f: string) => f && f.toLowerCase() === filterTag.toLowerCase());
+        const is24HString = filterTag === '24h' && (l.opening_hours?.includes('24小时') || (Array.isArray(l.facilities) && l.facilities.includes('24h')));
+        matchTag = hasFacility || is24HString;
+      }
+      return matchDistrict && matchTag;
+    });
+  }, [libraries, filterDistrict, filterTag]);
 
   const districtStats = useMemo(() => {
     const stats: Record<string, number> = {};
-    libraries.forEach((l: any) => {
-      if (l.district) stats[l.district] = (stats[l.district] || 0) + 1;
-    });
+    if (Array.isArray(libraries)) {
+      libraries.forEach((l: any) => {
+        if (l?.district) stats[l.district] = (stats[l.district] || 0) + 1;
+      });
+    }
     return Object.entries(stats).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
   }, [libraries]);
 
@@ -79,16 +106,17 @@ function App() {
     if (!selectedLib || !selectedLib.score?.details) return [];
     const d = selectedLib.score.details;
     return [
-      { subject: '免费度', A: d.free_credibility, fullMark: 100 },
-      { subject: '时间', A: d.opening_hours, fullMark: 100 },
-      { subject: '交通', A: d.accessibility, fullMark: 100 },
-      { subject: '环境', A: d.environment, fullMark: 100 },
-      { subject: '周边', A: d.surrounding, fullMark: 100 },
-      { subject: '设施', A: d.facilities, fullMark: 100 },
+      { subject: '免费度', A: d.free_credibility || 0, fullMark: 100 },
+      { subject: '时间', A: d.opening_hours || 0, fullMark: 100 },
+      { subject: '交通', A: d.accessibility || 0, fullMark: 100 },
+      { subject: '环境', A: d.environment || 0, fullMark: 100 },
+      { subject: '周边', A: d.surrounding || 0, fullMark: 100 },
+      { subject: '设施', A: d.facilities || 0, fullMark: 100 },
     ];
   }, [selectedLib]);
 
   const handleNavigate = (lib: any) => {
+    if (!lib) return;
     const uri = `https://uri.amap.com/marker?position=${lib.lng},${lib.lat}&name=${encodeURIComponent(lib.name)}&coordinate=gaode&callnative=1`;
     window.open(uri, '_blank');
   };
@@ -98,6 +126,16 @@ function App() {
       <div className="loading-screen">
         <div className="loader"></div>
         <p>正在拉取北京图书馆实时数据...</p>
+      </div>
+    );
+  }
+
+  if (error && libraries.length === 0) {
+    return (
+      <div className="loading-screen error">
+        <div style={{ fontSize: '40px' }}>📁</div>
+        <p>数据加载失败: {error}</p>
+        <button onClick={() => window.location.reload()} className="filter-chip active">重试</button>
       </div>
     );
   }
@@ -116,11 +154,11 @@ function App() {
             <div className="district-filters">
               {districts.map(d => (
                 <button 
-                  key={d} 
+                  key={String(d)} 
                   className={`filter-chip ${filterDistrict === d ? 'active' : ''}`}
-                  onClick={() => setFilterDistrict(d)}
+                  onClick={() => setFilterDistrict(String(d))}
                 >
-                  {d}
+                  {String(d)}
                 </button>
               ))}
             </div>
@@ -188,7 +226,7 @@ function App() {
             </p>
 
             <div className="facility-tags">
-              {selectedLib.facilities?.map((f: string) => (
+              {Array.isArray(selectedLib.facilities) && selectedLib.facilities.map((f: string) => (
                 <div key={f} className={`f-tag-wrapper ${f.toLowerCase() === '24h' ? 'special' : ''}`}>
                   <div className="f-tag-content">
                     <span className="f-emoji">{getEmojiForFacility(f)}</span>
@@ -253,7 +291,7 @@ function App() {
         </div>
 
         <ul className="rank-list">
-          {libraries
+          {[...filteredLibraries]
             .sort((a: any, b: any) => (b.score?.total || 0) - (a.score?.total || 0))
             .slice(0, 15)
             .map((lib: any, index) => (

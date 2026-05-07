@@ -659,6 +659,9 @@ body {
 }
 
 .loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 100vh;
   width: 100vw;
   background-color: #020617;
@@ -666,8 +669,13 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: var(--accent-color);
+  color: #fff;
   gap: 20px;
+  z-index: 9999;
+}
+
+.loading-screen.error {
+  color: #f43f5e;
 }
 
 .loader {

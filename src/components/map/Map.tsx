@@ -7,6 +7,7 @@ interface MapProps {
 }
 
 const getEmojiForFacility = (f: string) => {
+  if (!f) return '';
   const map: Record<string, string> = {
     '24h': '🌙',
     'wi-fi': '📶',
@@ -32,16 +33,15 @@ const getEmojiForFacility = (f: string) => {
   return map[f.toLowerCase()] || '';
 };
 
-const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false }) => {
+const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = false }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const heatmapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
-  // 1. Map & Plugins Initialization
   useEffect(() => {
     let retryCount = 0;
-    const maxRetries = 15;
+    const maxRetries = 20;
 
     const initMap = () => {
       if (!mapRef.current || mapInstance.current) return;
@@ -57,7 +57,6 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
       }
 
       try {
-        console.log('Initializing AMap...');
         mapInstance.current = new AMap.Map(mapRef.current, {
           zoom: 11,
           center: [116.397428, 39.90923],
@@ -66,7 +65,6 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
           pitch: 45,
         });
 
-        // Initialize Geolocation control
         if (AMap.Geolocation) {
           const geolocation = new AMap.Geolocation({
             enableHighAccuracy: true,
@@ -79,7 +77,6 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
           mapInstance.current.addControl(geolocation);
         }
 
-        // Initialize Heatmap instance but keep hidden
         if (AMap.Heatmap) {
           heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
             radius: 25,
@@ -92,18 +89,9 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
               1.0: '#ff0000'
             }
           });
-          console.log('Heatmap plugin initialized');
-        } else {
-          // Fallback if plugin not preloaded
-          AMap.plugin(['AMap.Heatmap'], () => {
-            heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-              radius: 25,
-              opacity: [0, 0.8]
-            });
-          });
         }
       } catch (e) {
-        console.error('AMap Error:', e);
+        console.error('AMap creation failed:', e);
       }
     };
 
@@ -111,14 +99,12 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
 
     return () => {
       if (mapInstance.current) {
-        console.log('Destroying map instance');
         mapInstance.current.destroy();
         mapInstance.current = null;
       }
     };
   }, []);
 
-  // 2. Render Markers (Dependency: libraries only)
   useEffect(() => {
     if (!mapInstance.current) return;
     
@@ -126,13 +112,14 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
     const AMap = window.AMap;
     if (!AMap) return;
 
-    // Accurate cleaning of markers
     markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
 
-    console.log(`Rendering ${libraries.length} markers`);
+    if (!Array.isArray(libraries)) return;
 
     libraries.forEach((lib) => {
+      if (!lib || !lib.lng || !lib.lat) return;
+
       const score = lib.score?.total || 0;
       let glowColor = 'var(--accent-color)';
       let glowSize = '10px';
@@ -145,15 +132,12 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
       else { glowColor = '#94a3b8'; glowSize = '4px'; scale = 0.7; zIndex = 102; }
 
       let emojisData: {emoji: string, name: string, desc: string}[] = [];
-      if (lib.facilities) {
+      if (Array.isArray(lib.facilities)) {
         emojisData = lib.facilities.map((f: string) => ({
           emoji: getEmojiForFacility(f),
           name: f,
-          desc: lib.score?.facility_details?.[f] || '提供高品质的阅读与自习服务。'
+          desc: lib.score?.facility_details?.[f] || '提供高品质服务。'
         })).filter((e: any) => e.emoji);
-      }
-      if (lib.opening_hours?.includes('24小时') && !emojisData.find((e: any) => e.emoji === '🌙')) {
-        emojisData.unshift({ emoji: '🌙', name: '24h', desc: '全天候不打烊的深夜避风港。' });
       }
       
       const emojiRegistry = new globalThis.Map<string, {emoji: string, name: string, desc: string}>();
@@ -175,7 +159,7 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
       ` : '';
 
       const marker = new AMap.Marker({
-        position: [lib.lng, lib.lat],
+        position: [Number(lib.lng), Number(lib.lat)],
         title: lib.name,
         map: mapInstance.current,
         zIndex: zIndex,
@@ -193,36 +177,32 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Heatmap & Opacity Control (Pure Reactive)
   useEffect(() => {
     const mapContainer = mapRef.current;
-    if (!mapContainer) return;
+    if (!mapContainer || !heatmapInstance.current) return;
 
     if (showHeatmap) {
       mapContainer.classList.add('heatmap-mode');
-      if (heatmapInstance.current && libraries.length > 0) {
+      if (Array.isArray(libraries) && libraries.length > 0) {
         try {
-          const heatmapData = libraries.map(lib => ({
+          const heatmapData = libraries.filter(l => l && l.lng && l.lat).map(lib => ({
             lng: Number(lib.lng),
             lat: Number(lib.lat),
             count: Number(lib.score?.total || 70)
           }));
           heatmapInstance.current.setDataSet({ data: heatmapData, max: 100 });
           heatmapInstance.current.show();
-          console.log('Heatmap display successful');
         } catch (err) {
-          console.error('Heatmap DataSet error:', err);
+          console.error('Heatmap error:', err);
         }
       }
     } else {
       mapContainer.classList.remove('heatmap-mode');
-      if (heatmapInstance.current) {
-        heatmapInstance.current.hide();
-      }
+      heatmapInstance.current.hide();
     }
   }, [showHeatmap, libraries]);
 
-  return <div ref={mapRef} className="map-container-root" style={{ width: '100%', height: '100%' }} />;
+  return <div ref={mapRef} className="map-container-root" style={{ width: '100%', height: '100%', backgroundColor: '#020617' }} />;
 };
 
 export default Map;
