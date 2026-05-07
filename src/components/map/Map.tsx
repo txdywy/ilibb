@@ -39,6 +39,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
   const heatmapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
+  // 1. Unified Map Initialization with Plugin Guard
   useEffect(() => {
     let retryCount = 0;
     const maxRetries = 20;
@@ -65,31 +66,37 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
           pitch: 45,
         });
 
-        if (AMap.Geolocation) {
-          const geolocation = new AMap.Geolocation({
-            enableHighAccuracy: true,
-            timeout: 10000,
-            position: 'RB',
-            offset: [20, 20],
-            zoomToAccuracy: true,
-            buttonPosition: 'RB'
-          });
-          mapInstance.current.addControl(geolocation);
-        }
+        // Load Plugins with absolute certainty
+        AMap.plugin(['AMap.Geolocation', 'AMap.Heatmap'], () => {
+          if (!mapInstance.current) return;
+          
+          // Geolocation
+          if (AMap.Geolocation) {
+            const geolocation = new AMap.Geolocation({
+              enableHighAccuracy: true,
+              timeout: 10000,
+              position: 'RB',
+              offset: [20, 20],
+              buttonPosition: 'RB'
+            });
+            mapInstance.current.addControl(geolocation);
+          }
 
-        if (AMap.Heatmap) {
-          heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-            radius: 25,
-            opacity: [0, 0.8],
-            gradient: {
-              0.5: 'blue',
-              0.65: 'rgb(117,211,248)',
-              0.7: 'rgb(0,255,0)',
-              0.9: '#ffea00',
-              1.0: '#ff0000'
-            }
-          });
-        }
+          // Heatmap - Delayed construction to ensure instance is ready
+          if (AMap.Heatmap) {
+            heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
+              radius: 25,
+              opacity: [0, 0.8],
+              gradient: {
+                0.5: 'blue',
+                0.65: 'rgb(117,211,248)',
+                0.7: 'rgb(0,255,0)',
+                0.9: '#ffea00',
+                1.0: '#ff0000'
+              }
+            });
+          }
+        });
       } catch (e) {
         console.error('AMap creation failed:', e);
       }
@@ -99,12 +106,18 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
 
     return () => {
       if (mapInstance.current) {
+        // Safe disposal of markers and heatmap
+        if (heatmapInstance.current && typeof heatmapInstance.current.setMap === 'function') {
+          heatmapInstance.current.setMap(null);
+        }
         mapInstance.current.destroy();
         mapInstance.current = null;
+        heatmapInstance.current = null;
       }
     };
   }, []);
 
+  // 2. Markers Rendering Logic
   useEffect(() => {
     if (!mapInstance.current) return;
     
@@ -177,28 +190,36 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     });
   }, [libraries, onMarkerClick]);
 
+  // 3. Heatmap Sync with Defensive Logic
   useEffect(() => {
+    const hm = heatmapInstance.current;
     const mapContainer = mapRef.current;
-    if (!mapContainer || !heatmapInstance.current) return;
+    if (!mapContainer) return;
 
+    // Use CSS for marker opacity regardless of heatmap instance readiness
     if (showHeatmap) {
       mapContainer.classList.add('heatmap-mode');
-      if (Array.isArray(libraries) && libraries.length > 0) {
+    } else {
+      mapContainer.classList.remove('heatmap-mode');
+    }
+
+    // Defensive check for heatmap methods
+    if (hm && typeof hm.show === 'function' && typeof hm.hide === 'function') {
+      if (showHeatmap && Array.isArray(libraries) && libraries.length > 0) {
         try {
           const heatmapData = libraries.filter(l => l && l.lng && l.lat).map(lib => ({
             lng: Number(lib.lng),
             lat: Number(lib.lat),
             count: Number(lib.score?.total || 70)
           }));
-          heatmapInstance.current.setDataSet({ data: heatmapData, max: 100 });
-          heatmapInstance.current.show();
+          hm.setDataSet({ data: heatmapData, max: 100 });
+          hm.show();
         } catch (err) {
-          console.error('Heatmap error:', err);
+          console.error('Heatmap data error:', err);
         }
+      } else {
+        hm.hide();
       }
-    } else {
-      mapContainer.classList.remove('heatmap-mode');
-      heatmapInstance.current.hide();
     }
   }, [showHeatmap, libraries]);
 
