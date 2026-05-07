@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import Map from './components/map/Map';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import Map, { type MapRef } from './components/map/Map';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, Tooltip as ReTooltip, Cell
@@ -9,26 +9,10 @@ import './App.css';
 const getEmojiForFacility = (f: string) => {
   if (!f) return '✨';
   const map: Record<string, string> = {
-    '24h': '🌙',
-    'wi-fi': '📶',
-    '自习室': '📖',
-    '自习区': '📖',
-    '咖啡厅': '☕',
-    '少儿区': '🧸',
-    '特色建筑': '🏛️',
-    '教堂建筑': '⛪',
-    '四合院': '⛩️',
-    '古建': '⛩️',
-    '餐厅': '🍴',
-    '数字资源': '💻',
-    '充电': '⚡',
-    '电源插座': '🔌',
-    '地铁直达': '🚇',
-    '免预约': '🚶‍♂️',
-    '隔音舱': '🤫',
-    '免费饮水': '💧',
-    '智能选座': '📱',
-    '存包柜': '🛅'
+    '24h': '🌙', 'wi-fi': '📶', '自习室': '📖', '自习区': '📖', '咖啡厅': '☕',
+    '少儿区': '🧸', '特色建筑': '🏛️', '教堂建筑': '⛪', '四合院': '⛩️', '古建': '⛩️',
+    '餐厅': '🍴', '数字资源': '💻', '充电': '⚡', '电源插座': '🔌', '地铁直达': '🚇',
+    '免预约': '🚶‍♂️', '隔音舱': '🤫', '免费饮水': '💧', '智能选座': '📱', '存包柜': '🛅'
   };
   return map[f.toLowerCase()] || '✨';
 };
@@ -41,6 +25,12 @@ function App() {
   const [filterDistrict, setFilterDistrict] = useState<string>('全部');
   const [filterTag, setFilterTag] = useState<string>('全部');
   const [showHeatmap, setShowHeatmap] = useState(false);
+  
+  // Search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const mapRef = useRef<MapRef>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('data/libraries.json')
@@ -49,30 +39,34 @@ function App() {
         return res.json();
       })
       .then(data => {
-        if (Array.isArray(data)) {
-          setLibraries(data);
-        } else {
-          console.error('Data is not an array:', data);
-          setLibraries([]);
-          setError('数据格式不正确');
-        }
+        if (Array.isArray(data)) setLibraries(data);
+        else setError('数据格式不正确');
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load libraries:', err);
         setError(err.message);
         setLoading(false);
       });
   }, []);
 
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearch(true);
+        setTimeout(() => searchInputRef.current?.focus(), 100);
+      }
+      if (e.key === 'Escape') setShowSearch(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const districts = useMemo(() => {
-    try {
-      if (!Array.isArray(libraries)) return ['全部'];
-      const set = new Set(libraries.map((l: any) => l?.district).filter(Boolean));
-      return ['全部', ...Array.from(set)];
-    } catch (e) {
-      return ['全部'];
-    }
+    if (!Array.isArray(libraries)) return ['全部'];
+    const set = new Set(libraries.map((l: any) => l?.district).filter(Boolean));
+    return ['全部', ...Array.from(set)];
   }, [libraries]);
 
   const tags = ['全部', '24h', '自习室', 'Wi-Fi', '电源插座', '地铁直达', '免预约', '隔音舱'];
@@ -91,6 +85,18 @@ function App() {
       return matchDistrict && matchTag;
     });
   }, [libraries, filterDistrict, filterTag]);
+
+  // Fuzzy search logic
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return libraries.filter(l => 
+      l.name.toLowerCase().includes(q) || 
+      l.district.toLowerCase().includes(q) ||
+      l.address.toLowerCase().includes(q) ||
+      (l.facilities && l.facilities.some((f: string) => f.toLowerCase().includes(q)))
+    ).slice(0, 10);
+  }, [libraries, searchQuery]);
 
   const districtStats = useMemo(() => {
     const stats: Record<string, number> = {};
@@ -114,6 +120,15 @@ function App() {
       { subject: '设施', A: d.facilities || 0, fullMark: 100 },
     ];
   }, [selectedLib]);
+
+  const handleSelectLib = (lib: any) => {
+    setSelectedLib(lib);
+    setShowSearch(false);
+    setSearchQuery('');
+    if (mapRef.current && lib.lng && lib.lat) {
+      mapRef.current.flyTo(lib.lng, lib.lat);
+    }
+  };
 
   const handleNavigate = (lib: any) => {
     if (!lib) return;
@@ -180,18 +195,54 @@ function App() {
         </div>
 
         <div className="header-actions">
+          <button className="search-trigger" onClick={() => setShowSearch(true)}>
+            🔍 <span className="k-hint">⌘K</span>
+          </button>
           <button 
             className={`visual-toggle ${showHeatmap ? 'active' : ''}`}
             onClick={() => setShowHeatmap(!showHeatmap)}
           >
-            {showHeatmap ? '🔥 热力图已开启' : '📊 开启热力模式'}
+            {showHeatmap ? '🔥' : '📊'}
           </button>
         </div>
       </header>
       
+      {showSearch && (
+        <div className="search-overlay glass-card" onClick={(e) => e.target === e.currentTarget && setShowSearch(false)}>
+          <div className="search-modal glass-card">
+            <input 
+              ref={searchInputRef}
+              type="text" 
+              placeholder="搜索场馆名称、区域或特色 (如: 24h, 插座)..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            <div className="search-results">
+              {searchResults.map(lib => (
+                <div key={lib.id} className="search-item" onClick={() => handleSelectLib(lib)}>
+                  <div className="search-item-main">
+                    <span className="search-item-name">{lib.name}</span>
+                    <span className="search-item-district">{lib.district}</span>
+                  </div>
+                  <div className="search-item-tags">
+                    {lib.facilities?.slice(0, 2).map((f: string) => (
+                      <span key={f} className="mini-tag">{getEmojiForFacility(f)}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {searchQuery && searchResults.length === 0 && (
+                <div className="no-results">未找到匹配的场馆</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="main-content">
         <div className="map-wrapper">
-          <Map libraries={filteredLibraries} onMarkerClick={setSelectedLib} showHeatmap={showHeatmap} />
+          <Map ref={mapRef} libraries={filteredLibraries} onMarkerClick={setSelectedLib} showHeatmap={showHeatmap} />
         </div>
         
         {selectedLib && (
@@ -295,7 +346,7 @@ function App() {
             .sort((a: any, b: any) => (b.score?.total || 0) - (a.score?.total || 0))
             .slice(0, 15)
             .map((lib: any, index) => (
-              <li key={lib.id} className={selectedLib?.id === lib.id ? 'active' : ''} onClick={() => setSelectedLib(lib)}>
+              <li key={lib.id} className={selectedLib?.id === lib.id ? 'active' : ''} onClick={() => handleSelectLib(lib)}>
                 <span className={`rank-num n${index + 1}`}>{index + 1}</span>
                 <div className="rank-info">
                   <span className="rank-name">{lib.name}</span>

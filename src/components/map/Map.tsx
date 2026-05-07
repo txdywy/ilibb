@@ -1,9 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
 interface MapProps {
   libraries: any[];
   onMarkerClick: (lib: any) => void;
   showHeatmap?: boolean;
+}
+
+export interface MapRef {
+  flyTo: (lng: number, lat: number) => void;
 }
 
 const getEmojiForFacility = (f: string) => {
@@ -17,14 +21,24 @@ const getEmojiForFacility = (f: string) => {
   return map[f.toLowerCase()] || '';
 };
 
-const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = false }) => {
+const Map = forwardRef<MapRef, MapProps>(({ libraries = [], onMarkerClick, showHeatmap = false }, ref) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const heatmapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const isInitializingHeatmap = useRef(false);
 
-  // 1. Initial Setup
+  // Expose flyTo method to parent
+  useImperativeHandle(ref, () => ({
+    flyTo: (lng: number, lat: number) => {
+      if (mapInstance.current) {
+        mapInstance.current.setZoomAndCenter(16, [lng, lat], false, 1000);
+        mapInstance.current.setPitch(60, false, 1000); 
+      }
+    }
+  }));
+
+  // 1. Core Map Initialization
   useEffect(() => {
     let retryCount = 0;
     const initMap = () => {
@@ -58,7 +72,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     };
   }, []);
 
-  // 2. Markers
+  // 2. Markers Rendering
   useEffect(() => {
     if (!mapInstance.current) return;
     // @ts-ignore
@@ -113,7 +127,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Final Calibration for HeatMap Visibility
+  // 3. Final HeatMap Fix (Using AMap.HeatMap with capital M)
   useEffect(() => {
     const mapContainer = mapRef.current;
     if (!mapContainer || !mapInstance.current) return;
@@ -127,17 +141,14 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
         const hm = heatmapInstance.current;
         if (!hm || typeof hm.setDataSet !== 'function') return;
 
-        // Visual Calibration: Standardize counts and data
         const data = libraries.filter(l => l.lng && l.lat).map(l => ({
           lng: Number(l.lng), lat: Number(l.lat), count: 100
         }));
 
         try {
-          // AMap 2.0 HeatMap Hack: Re-attach and high zIndex
           hm.setDataSet({ data, max: 100 });
           hm.setMap(mapInstance.current);
           if (typeof hm.show === 'function') hm.show();
-          console.log('[HeatMap] Visibility Boosted');
         } catch (e) {
           console.error('[HeatMap] Render error:', e);
         }
@@ -149,16 +160,8 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
           const HeatMapClass = AMap.HeatMap || AMap.Heatmap;
           if (HeatMapClass) {
             heatmapInstance.current = new HeatMapClass(mapInstance.current, {
-              radius: 60, // Enormous radius
-              opacity: [0, 1.0], // Full opacity
-              zIndex: 3000, // Top of the world
-              gradient: {
-                0.2: 'blue',
-                0.4: 'cyan',
-                0.6: 'lime',
-                0.8: 'yellow',
-                1.0: 'red'
-              }
+              radius: 60, opacity: [0, 1.0], zIndex: 3000,
+              gradient: { 0.2: 'blue', 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
             });
           }
           isInitializingHeatmap.current = false;
@@ -177,6 +180,6 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
   }, [showHeatmap, libraries]);
 
   return <div ref={mapRef} className="map-container-root" style={{ width: '100%', height: '100%', backgroundColor: '#020617' }} />;
-};
+});
 
 export default Map;
