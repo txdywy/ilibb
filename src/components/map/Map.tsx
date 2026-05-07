@@ -9,26 +9,10 @@ interface MapProps {
 const getEmojiForFacility = (f: string) => {
   if (!f) return '';
   const map: Record<string, string> = {
-    '24h': '🌙',
-    'wi-fi': '📶',
-    '自习室': '📖',
-    '自习区': '📖',
-    '咖啡厅': '☕',
-    '少儿区': '🧸',
-    '特色建筑': '🏛️',
-    '教堂建筑': '⛪',
-    '四合院': '⛩️',
-    '古建': '⛩️',
-    '餐厅': '🍴',
-    '数字资源': '💻',
-    '充电': '⚡',
-    '电源插座': '🔌',
-    '地铁直达': '🚇',
-    '免预约': '🚶‍♂️',
-    '隔音舱': '🤫',
-    '免费饮水': '💧',
-    '智能选座': '📱',
-    '存包柜': '🛅'
+    '24h': '🌙', 'wi-fi': '📶', '自习室': '📖', '自习区': '📖', '咖啡厅': '☕',
+    '少儿区': '🧸', '特色建筑': '🏛️', '教堂建筑': '⛪', '四合院': '⛩️', '古建': '⛩️',
+    '餐厅': '🍴', '数字资源': '💻', '充电': '⚡', '电源插座': '🔌', '地铁直达': '🚇',
+    '免预约': '🚶‍♂️', '隔音舱': '🤫', '免费饮水': '💧', '智能选座': '📱', '存包柜': '🛅'
   };
   return map[f.toLowerCase()] || '';
 };
@@ -38,184 +22,140 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
   const mapInstance = useRef<any>(null);
   const heatmapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const isInitializingHeatmap = useRef(false);
 
-  // 1. Map Initialization
+  // 1. Core Map Initialization
   useEffect(() => {
     let retryCount = 0;
-    const maxRetries = 20;
-
     const initMap = () => {
       if (!mapRef.current || mapInstance.current) return;
-
       // @ts-ignore
       const AMap = window.AMap;
       if (!AMap || !AMap.Map) {
-        if (retryCount < maxRetries) {
-          retryCount++;
-          setTimeout(initMap, 500); 
-        }
+        if (retryCount < 20) { retryCount++; setTimeout(initMap, 500); }
         return;
       }
-
       try {
-        console.log('[Map] Creating AMap Instance');
         mapInstance.current = new AMap.Map(mapRef.current, {
-          zoom: 11,
-          center: [116.397428, 39.90923],
-          mapStyle: 'amap://styles/dark', 
-          viewMode: '3D',
-          pitch: 45,
+          zoom: 11, center: [116.397428, 39.90923],
+          mapStyle: 'amap://styles/dark', viewMode: '3D', pitch: 45,
         });
-
-        // Add Geolocation control
         AMap.plugin(['AMap.Geolocation'], () => {
           if (AMap.Geolocation && mapInstance.current) {
-            const geolocation = new AMap.Geolocation({
-              enableHighAccuracy: true,
-              timeout: 10000,
-              position: 'RB',
-              offset: [20, 20],
-              buttonPosition: 'RB'
-            });
-            mapInstance.current.addControl(geolocation);
+            mapInstance.current.addControl(new AMap.Geolocation({
+              enableHighAccuracy: true, timeout: 10000, position: 'RB', offset: [20, 20], buttonPosition: 'RB'
+            }));
           }
         });
-
-        // Initialize Heatmap Plugin Explicitly
-        AMap.plugin(['AMap.Heatmap'], () => {
-          if (!mapInstance.current) return;
-          heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-            radius: 50, // Massive radius for visibility
-            opacity: [0, 0.9],
-            zIndex: 10,
-            gradient: {
-              0.4: 'rgb(0, 255, 255)',
-              0.6: 'rgb(0, 255, 0)',
-              0.8: 'rgb(255, 255, 0)',
-              1.0: 'rgb(255, 0, 0)'
-            }
-          });
-          console.log('[Map] Heatmap Plugin Ready');
-        });
-
-      } catch (e) {
-        console.error('AMap creation failed:', e);
-      }
+      } catch (e) { console.error('AMap creation failed:', e); }
     };
-
     initMap();
-
     return () => {
       if (mapInstance.current) {
         mapInstance.current.destroy();
         mapInstance.current = null;
-        heatmapInstance.current = null;
       }
     };
   }, []);
 
-  // 2. Markers Rendering Logic
+  // 2. Markers Rendering
   useEffect(() => {
     if (!mapInstance.current) return;
-    
     // @ts-ignore
     const AMap = window.AMap;
     if (!AMap) return;
 
-    // Accurate cleaning of markers
     markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
 
     libraries.forEach((lib) => {
       if (!lib || !lib.lng || !lib.lat) return;
-
       const score = lib.score?.total || 0;
       let glowColor = 'var(--accent-color)';
-      let glowSize = '10px';
       let scale = 1;
-      let zIndex = 100;
+      if (score >= 85) { glowColor = '#ffd700'; scale = 1.3; }
+      else if (score >= 80) { glowColor = '#00f2fe'; scale = 1.1; }
+      else if (score >= 75) { glowColor = '#4facfe'; scale = 0.9; }
+      else { glowColor = '#94a3b8'; scale = 0.7; }
 
-      if (score >= 85) { glowColor = '#ffd700'; glowSize = '20px'; scale = 1.3; zIndex = 105; }
-      else if (score >= 80) { glowColor = '#00f2fe'; glowSize = '15px'; scale = 1.1; zIndex = 104; }
-      else if (score >= 75) { glowColor = '#4facfe'; glowSize = '8px'; scale = 0.9; zIndex = 103; }
-      else { glowColor = '#94a3b8'; glowSize = '4px'; scale = 0.7; zIndex = 102; }
-
-      let emojisData: {emoji: string, name: string, desc: string}[] = [];
-      if (Array.isArray(lib.facilities)) {
-        emojisData = lib.facilities.map((f: string) => ({
-          emoji: getEmojiForFacility(f),
-          name: f,
-          desc: lib.score?.facility_details?.[f] || '提供高品质服务。'
-        })).filter((e: any) => e.emoji);
-      }
+      let emojisData = (lib.facilities || []).map((f: string) => ({
+        emoji: getEmojiForFacility(f), name: f, desc: lib.score?.facility_details?.[f] || '提供高品质服务。'
+      })).filter((e: any) => e.emoji);
       
-      const emojiRegistry = new globalThis.Map<string, {emoji: string, name: string, desc: string}>();
-      emojisData.forEach(item => { if (!emojiRegistry.has(item.emoji)) emojiRegistry.set(item.emoji, item); });
-      emojisData = Array.from(emojiRegistry.values()).slice(0, 3);
+      const emojiRegistry = new globalThis.Map<string, any>();
+      emojisData.forEach((item: any) => { if (!emojiRegistry.has(item.emoji)) emojiRegistry.set(item.emoji, item); });
+      const finalEmojis = Array.from(emojiRegistry.values()).slice(0, 3);
       
-      const emojiHtml = emojisData.length > 0 ? `
-        <div class="marker-emojis-container">
-          ${emojisData.map(e => `
-            <div class="map-emoji-item">
-              <span class="m-emoji">${e.emoji}</span>
-              <div class="map-emoji-tooltip">
-                <div class="m-tt-header"><span class="m-tt-emoji">${e.emoji}</span><span class="m-tt-title">${e.name}</span></div>
-                <p class="m-tt-desc">${e.desc}</p>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      ` : '';
-
       const marker = new AMap.Marker({
         position: [Number(lib.lng), Number(lib.lat)],
-        title: lib.name,
         map: mapInstance.current,
-        zIndex: zIndex,
+        zIndex: score,
         content: `
-          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale};">
-            ${emojiHtml}
+          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-scale: ${scale};">
+            <div class="marker-emojis-container">
+              ${finalEmojis.map(e => `
+                <div class="map-emoji-item">
+                  <span class="m-emoji">${e.emoji}</span>
+                  <div class="map-emoji-tooltip">
+                    <div class="m-tt-header"><span class="m-tt-emoji">${e.emoji}</span><span class="m-tt-title">${e.name}</span></div>
+                    <p class="m-tt-desc">${e.desc}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
             <div class="amap-marker-glow"></div>
           </div>
         `,
         offset: new AMap.Pixel(-10, -10),
       });
-
       marker.on('click', () => onMarkerClick(lib));
       markersRef.current.push(marker);
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Heatmap Sync (Separated & Robust)
+  // 3. Robust Heatmap Logic
   useEffect(() => {
-    const hm = heatmapInstance.current;
     const mapContainer = mapRef.current;
-    if (!mapContainer) return;
+    if (!mapContainer || !mapInstance.current) return;
+    // @ts-ignore
+    const AMap = window.AMap;
 
     if (showHeatmap) {
       mapContainer.classList.add('heatmap-mode');
-      if (hm && libraries.length > 0) {
-        console.log('[Heatmap] Activating with data length:', libraries.length);
-        const heatmapData = libraries.filter(l => l && l.lng && l.lat).map(lib => ({
-          lng: Number(lib.lng),
-          lat: Number(lib.lat),
-          count: 100 // Maximum weight to force color display
-        }));
-        
-        try {
-          hm.setDataSet({ data: heatmapData, max: 100 });
-          // Ensure it's attached to map
-          hm.setMap(mapInstance.current);
-          console.log('[Heatmap] setDataSet applied');
-        } catch (e) {
-          console.error('[Heatmap] Failed to apply data:', e);
+      
+      const startHeatmap = () => {
+        if (!heatmapInstance.current) return;
+        if (typeof heatmapInstance.current.setDataSet !== 'function') {
+           console.error('[Heatmap] Instance exists but setDataSet is missing. Re-initializing...');
+           heatmapInstance.current = null;
+           return;
         }
+        const data = libraries.filter(l => l.lng && l.lat).map(l => ({
+          lng: Number(l.lng), lat: Number(l.lat), count: 100
+        }));
+        heatmapInstance.current.setDataSet({ data, max: 100 });
+        heatmapInstance.current.setMap(mapInstance.current);
+        heatmapInstance.current.show();
+      };
+
+      if (!heatmapInstance.current && !isInitializingHeatmap.current) {
+        isInitializingHeatmap.current = true;
+        console.log('[Heatmap] Loading plugin...');
+        AMap.plugin(['AMap.Heatmap'], () => {
+          heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
+            radius: 50, opacity: [0, 0.9], zIndex: 10,
+            gradient: { 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
+          });
+          isInitializingHeatmap.current = false;
+          startHeatmap();
+        });
+      } else {
+        startHeatmap();
       }
     } else {
       mapContainer.classList.remove('heatmap-mode');
-      if (hm) {
-        hm.setDataSet({ data: [], max: 100 });
-        hm.setMap(null); // Detach to ensure invisibility
+      if (heatmapInstance.current && typeof heatmapInstance.current.hide === 'function') {
+        heatmapInstance.current.hide();
       }
     }
   }, [showHeatmap, libraries]);
