@@ -39,7 +39,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
   const heatmapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
-  // 1. Unified Map Initialization
+  // 1. Map Initialization
   useEffect(() => {
     let retryCount = 0;
     const maxRetries = 20;
@@ -58,6 +58,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
       }
 
       try {
+        console.log('[Map] Creating AMap Instance');
         mapInstance.current = new AMap.Map(mapRef.current, {
           zoom: 11,
           center: [116.397428, 39.90923],
@@ -66,12 +67,9 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
           pitch: 45,
         });
 
-        // Load Plugins
-        AMap.plugin(['AMap.Geolocation', 'AMap.Heatmap'], () => {
-          if (!mapInstance.current) return;
-          
-          // Geolocation
-          if (AMap.Geolocation) {
+        // Add Geolocation control
+        AMap.plugin(['AMap.Geolocation'], () => {
+          if (AMap.Geolocation && mapInstance.current) {
             const geolocation = new AMap.Geolocation({
               enableHighAccuracy: true,
               timeout: 10000,
@@ -81,24 +79,25 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
             });
             mapInstance.current.addControl(geolocation);
           }
-
-          // Heatmap - High Intensity Settings
-          if (AMap.Heatmap) {
-            heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-              radius: 40, // Increased radius for better visibility
-              opacity: [0, 0.9],
-              visible: false,
-              zIndex: 100,
-              gradient: {
-                0.2: 'blue',
-                0.4: 'cyan',
-                0.6: 'lime',
-                0.8: 'yellow',
-                1.0: 'red'
-              }
-            });
-          }
         });
+
+        // Initialize Heatmap Plugin Explicitly
+        AMap.plugin(['AMap.Heatmap'], () => {
+          if (!mapInstance.current) return;
+          heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
+            radius: 50, // Massive radius for visibility
+            opacity: [0, 0.9],
+            zIndex: 10,
+            gradient: {
+              0.4: 'rgb(0, 255, 255)',
+              0.6: 'rgb(0, 255, 0)',
+              0.8: 'rgb(255, 255, 0)',
+              1.0: 'rgb(255, 0, 0)'
+            }
+          });
+          console.log('[Map] Heatmap Plugin Ready');
+        });
+
       } catch (e) {
         console.error('AMap creation failed:', e);
       }
@@ -115,7 +114,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     };
   }, []);
 
-  // 2. Markers Rendering
+  // 2. Markers Rendering Logic
   useEffect(() => {
     if (!mapInstance.current) return;
     
@@ -123,6 +122,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     const AMap = window.AMap;
     if (!AMap) return;
 
+    // Accurate cleaning of markers
     markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
 
@@ -186,7 +186,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Heatmap Force Sync
+  // 3. Heatmap Sync (Separated & Robust)
   useEffect(() => {
     const hm = heatmapInstance.current;
     const mapContainer = mapRef.current;
@@ -194,22 +194,28 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
 
     if (showHeatmap) {
       mapContainer.classList.add('heatmap-mode');
-      if (hm && typeof hm.setDataSet === 'function' && libraries.length > 0) {
-        // Boost counts for better visibility
+      if (hm && libraries.length > 0) {
+        console.log('[Heatmap] Activating with data length:', libraries.length);
         const heatmapData = libraries.filter(l => l && l.lng && l.lat).map(lib => ({
           lng: Number(lib.lng),
           lat: Number(lib.lat),
-          count: 50 // Standardize weight to force color blooms
+          count: 100 // Maximum weight to force color display
         }));
         
-        console.log('Pushing Heatmap Data:', heatmapData.length);
-        hm.setDataSet({ data: heatmapData, max: 100 });
-        hm.show();
+        try {
+          hm.setDataSet({ data: heatmapData, max: 100 });
+          // Ensure it's attached to map
+          hm.setMap(mapInstance.current);
+          console.log('[Heatmap] setDataSet applied');
+        } catch (e) {
+          console.error('[Heatmap] Failed to apply data:', e);
+        }
       }
     } else {
       mapContainer.classList.remove('heatmap-mode');
-      if (hm && typeof hm.hide === 'function') {
-        hm.hide();
+      if (hm) {
+        hm.setDataSet({ data: [], max: 100 });
+        hm.setMap(null); // Detach to ensure invisibility
       }
     }
   }, [showHeatmap, libraries]);
