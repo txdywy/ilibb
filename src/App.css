@@ -510,6 +510,16 @@ body {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
+.heatmap-mode .custom-marker-wrapper {
+  opacity: 0.2;
+  filter: grayscale(0.5);
+}
+
+.heatmap-mode .custom-marker-wrapper:hover {
+  opacity: 1;
+  filter: none;
+}
+
 .custom-marker-wrapper {
   position: relative;
   display: flex;
