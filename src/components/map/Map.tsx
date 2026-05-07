@@ -113,7 +113,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Robust Heatmap Logic
+  // 3. Final HeatMap Fix (Using AMap.HeatMap with capital M)
   useEffect(() => {
     const mapContainer = mapRef.current;
     if (!mapContainer || !mapInstance.current) return;
@@ -124,28 +124,43 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
       mapContainer.classList.add('heatmap-mode');
       
       const startHeatmap = () => {
-        if (!heatmapInstance.current) return;
-        if (typeof heatmapInstance.current.setDataSet !== 'function') {
-           console.error('[Heatmap] Instance exists but setDataSet is missing. Re-initializing...');
+        const hm = heatmapInstance.current;
+        if (!hm) return;
+        
+        // Critical: Check for HeatMap (capital M) method
+        if (typeof hm.setDataSet !== 'function') {
+           console.error('[HeatMap] setDataSet missing. Re-initializing with capital M...');
            heatmapInstance.current = null;
            return;
         }
+
         const data = libraries.filter(l => l.lng && l.lat).map(l => ({
           lng: Number(l.lng), lat: Number(l.lat), count: 100
         }));
-        heatmapInstance.current.setDataSet({ data, max: 100 });
-        heatmapInstance.current.setMap(mapInstance.current);
-        heatmapInstance.current.show();
+
+        try {
+          hm.setDataSet({ data, max: 100 });
+          hm.setMap(mapInstance.current);
+          hm.show();
+          console.log('[HeatMap] Visualization Active');
+        } catch (e) {
+          console.error('[HeatMap] Execution error:', e);
+        }
       };
 
       if (!heatmapInstance.current && !isInitializingHeatmap.current) {
         isInitializingHeatmap.current = true;
-        console.log('[Heatmap] Loading plugin...');
-        AMap.plugin(['AMap.Heatmap'], () => {
-          heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-            radius: 50, opacity: [0, 0.9], zIndex: 10,
-            gradient: { 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
-          });
+        console.log('[HeatMap] Loading AMap.HeatMap plugin...');
+        // Note: AMap.plugin still uses the string name
+        AMap.plugin(['AMap.HeatMap'], () => {
+          // Use the capital M constructor for 2.0
+          const HeatMapClass = AMap.HeatMap || AMap.Heatmap;
+          if (HeatMapClass) {
+            heatmapInstance.current = new HeatMapClass(mapInstance.current, {
+              radius: 50, opacity: [0, 0.9], zIndex: 10,
+              gradient: { 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
+            });
+          }
           isInitializingHeatmap.current = false;
           startHeatmap();
         });
