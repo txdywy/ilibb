@@ -459,5 +459,176 @@
       "Wi-Fi",
       "自习区"
     ]
+  },
+  {
+    "name": "通州区图书馆",
+    "address": "通州区通胡大街",
+    "lat": 39.907,
+    "lng": 116.671,
+    "opening_hours": "08:30-18:00",
+    "is_free": true,
+    "evidence_text": "通州区大型综合公共图书馆，免预约入馆",
+    "source_url": "http://www.bjtzlib.net/",
+    "district": "通州区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室",
+      "免预约",
+      "免费饮水"
+    ]
+  },
+  {
+    "name": "海淀区图书馆(北馆)",
+    "address": "海淀区温泉路47号",
+    "lat": 40.045,
+    "lng": 116.195,
+    "opening_hours": "09:00-21:00",
+    "is_free": true,
+    "evidence_text": "海淀北部文化中心，环境极佳，自习圣地",
+    "source_url": "http://www.hdlib.cn/",
+    "district": "海淀区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室",
+      "存包柜",
+      "电源插座"
+    ]
+  },
+  {
+    "name": "石景山区图书馆",
+    "address": "石景山区八角南路2号",
+    "lat": 39.904,
+    "lng": 116.188,
+    "opening_hours": "09:00-18:00",
+    "is_free": true,
+    "evidence_text": "石景山区核心馆，提供基础免费阅读服务",
+    "source_url": "http://www.bjsjs.gov.cn/",
+    "district": "石景山区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室"
+    ]
+  },
+  {
+    "name": "瞭仓书房(首钢园)",
+    "address": "石景山区首钢园内",
+    "lat": 39.916,
+    "lng": 116.155,
+    "opening_hours": "10:00-19:00",
+    "is_free": true,
+    "evidence_text": "旧料仓改造，极具工业风的特色阅读空间",
+    "source_url": "http://www.bjsjs.gov.cn/",
+    "district": "石景山区",
+    "facilities": [
+      "特色建筑",
+      "咖啡厅",
+      "免预约"
+    ]
+  },
+  {
+    "name": "门头沟区图书馆",
+    "address": "门头沟区新桥大街",
+    "lat": 39.939,
+    "lng": 116.105,
+    "opening_hours": "09:00-18:00",
+    "is_free": true,
+    "evidence_text": "门头沟区公共图书馆，通借通还",
+    "source_url": "http://www.mtglib.com/",
+    "district": "门头沟区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室"
+    ]
+  },
+  {
+    "name": "单向空间(檀谷店)",
+    "address": "门头沟区潭柘寺镇檀谷商业区",
+    "lat": 39.885,
+    "lng": 115.985,
+    "opening_hours": "10:00-21:00",
+    "is_free": true,
+    "evidence_text": "山谷中的文艺地标，提供舒适的免费阅读区域",
+    "source_url": "http://www.visitbeijing.com.cn/",
+    "district": "门头沟区",
+    "facilities": [
+      "特色建筑",
+      "咖啡厅",
+      "免预约"
+    ]
+  },
+  {
+    "name": "平谷区图书馆",
+    "address": "平谷区府前西街",
+    "lat": 40.14,
+    "lng": 117.112,
+    "opening_hours": "08:30-18:00",
+    "is_free": true,
+    "evidence_text": "平谷区核心公共图书馆",
+    "source_url": "http://www.beijing.gov.cn/",
+    "district": "平谷区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室"
+    ]
+  },
+  {
+    "name": "密云区图书馆",
+    "address": "密云区新东路",
+    "lat": 40.378,
+    "lng": 116.845,
+    "opening_hours": "08:30-18:00",
+    "is_free": true,
+    "evidence_text": "密云区核心公共图书馆",
+    "source_url": "http://www.beijing.gov.cn/",
+    "district": "密云区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室"
+    ]
+  },
+  {
+    "name": "怀柔区图书馆",
+    "address": "怀柔区雁栖大街",
+    "lat": 40.355,
+    "lng": 116.635,
+    "opening_hours": "08:30-18:00",
+    "is_free": true,
+    "evidence_text": "怀柔区核心公共图书馆",
+    "source_url": "http://www.beijing.gov.cn/",
+    "district": "怀柔区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室"
+    ]
+  },
+  {
+    "name": "篱苑书屋",
+    "address": "怀柔区雁栖镇交界河村",
+    "lat": 40.455,
+    "lng": 116.54,
+    "opening_hours": "周末 08:30-16:30 (冬季闭馆)",
+    "is_free": true,
+    "evidence_text": "被誉为“最美图书馆”，完全免费的公益书屋",
+    "source_url": "http://www.visitbeijing.com.cn/",
+    "district": "怀柔区",
+    "facilities": [
+      "特色建筑",
+      "免预约"
+    ]
+  },
+  {
+    "name": "延庆区图书馆",
+    "address": "延庆区妫水北街",
+    "lat": 40.465,
+    "lng": 115.985,
+    "opening_hours": "08:30-18:00",
+    "is_free": true,
+    "evidence_text": "延庆区核心公共图书馆",
+    "source_url": "http://www.beijing.gov.cn/",
+    "district": "延庆区",
+    "facilities": [
+      "Wi-Fi",
+      "自习室"
+    ]
   }
 ]
