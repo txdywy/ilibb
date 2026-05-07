@@ -527,6 +527,161 @@ async function scrapeFengtai() {
       source_url: 'http://www.bjsjs.gov.cn/',
       district: '石景山区',
       facilities: ['自习室', '免预约']
+    },
+    // --- Massive Expansion: City Study Rooms & Networked Points ---
+    {
+      name: '朝阳城市书屋·首开书院城市记忆书房',
+      address: '朝阳区安慧东里',
+      lat: 39.9951, lng: 116.4151,
+      opening_hours: '09:00-20:00',
+      is_free: true,
+      evidence_text: '2024年新开精品城市书屋，主打记忆与特藏',
+      source_url: 'http://www.chylib.net/',
+      district: '朝阳区',
+      facilities: ['特色建筑', '自习室', '咖啡厅']
+    },
+    {
+      name: '朝阳城市书屋·梦之墨书屋',
+      address: '朝阳区望京街道',
+      lat: 39.9910, lng: 116.4750,
+      opening_hours: '10:00-19:00',
+      is_free: true,
+      evidence_text: '望京核心社区精品书屋',
+      source_url: 'http://www.chylib.net/',
+      district: '朝阳区',
+      facilities: ['自习室', '免预约']
+    },
+    {
+      name: '坊间书阁(白纸坊街道)',
+      address: '西城区枣林前街16号',
+      lat: 39.8852, lng: 116.3561,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '由旧建筑改造，环境古朴，西城区悦读湾成员',
+      source_url: 'http://www.xclib.org/',
+      district: '西城区',
+      facilities: ['特色建筑', '免预约']
+    },
+    {
+      name: '椿树书苑(椿树街道)',
+      address: '西城区骡马市大街9号',
+      lat: 39.8910, lng: 116.3810,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '嵌入街道的高品质阅读空间',
+      source_url: 'http://www.xclib.org/',
+      district: '西城区',
+      facilities: ['自习室', 'Wi-Fi']
+    },
+    {
+      name: '陶然书苑(陶然亭街道)',
+      address: '西城区菜市口大街甲2号院',
+      lat: 39.8830, lng: 116.3750,
+      opening_hours: '09:00-19:00',
+      is_free: true,
+      evidence_text: '陶然亭周边首选免费自习点',
+      source_url: 'http://www.xclib.org/',
+      district: '西城区',
+      facilities: ['自习室', '免预约']
+    },
+    {
+      name: '八里庄街道图书馆',
+      address: '海淀区恩济西街8号楼底商',
+      lat: 39.9230, lng: 116.2850,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '海淀区成熟社区图书馆，自习氛围浓厚',
+      source_url: 'http://www.hdlib.cn/',
+      district: '海淀区',
+      facilities: ['自习室', 'Wi-Fi']
+    },
+    {
+      name: '清河街道图书馆',
+      address: '海淀区安宁庄东路1号',
+      lat: 40.0330, lng: 116.3450,
+      opening_hours: '09:00-20:00',
+      is_free: true,
+      evidence_text: '海淀北部重要街道分馆',
+      source_url: 'http://www.hdlib.cn/',
+      district: '海淀区',
+      facilities: ['自习室', '电源插座']
+    },
+    {
+      name: '金玉良言书房',
+      address: '石景山区金府路32号院',
+      lat: 39.9510, lng: 116.1650,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '银保产业园内的高颜值特色阅读空间',
+      source_url: 'http://www.bjsjs.gov.cn/',
+      district: '石景山区',
+      facilities: ['特色建筑', '自习室']
+    },
+    {
+      name: '京西书局',
+      address: '石景山区模式口大街',
+      lat: 39.9380, lng: 116.1550,
+      opening_hours: '10:00-19:00',
+      is_free: true,
+      evidence_text: '模式口古街内的文艺地标，提供免费阅读区',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '石景山区',
+      facilities: ['特色建筑', '免预约']
+    },
+    {
+      name: '悦闻书院',
+      address: '石景山区古城南路',
+      lat: 39.9050, lng: 116.1850,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '闹中取静的木质感高品质阅读空间',
+      source_url: 'http://www.visitbeijing.com.cn/',
+      district: '石景山区',
+      facilities: ['特色建筑', 'Wi-Fi']
+    },
+    {
+      name: '咱家书房(潞城馆)',
+      address: '通州区潞城镇',
+      lat: 39.9010, lng: 116.7450,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '通州区重点扶持的“咱家”系列精品书房',
+      source_url: 'http://www.bjtzlib.net/',
+      district: '通州区',
+      facilities: ['自习区', '免预约']
+    },
+    {
+      name: '咱家书房(张家湾馆)',
+      address: '通州区张家湾镇',
+      lat: 39.8550, lng: 116.7150,
+      opening_hours: '09:00-18:00',
+      is_free: true,
+      evidence_text: '张家湾古镇周边的特色公共阅读点',
+      source_url: 'http://www.bjtzlib.net/',
+      district: '通州区',
+      facilities: ['特色建筑', 'Wi-Fi']
+    },
+    {
+      name: '夕夕拾书店',
+      address: '大兴区特色文化街区',
+      lat: 39.7350, lng: 116.3350,
+      opening_hours: '10:00-21:00',
+      is_free: true,
+      evidence_text: '融合咖啡与阅读的品质空间，大兴城市书屋成员',
+      source_url: 'http://www.dxlib.net.cn/',
+      district: '大兴区',
+      facilities: ['咖啡厅', '电源插座']
+    },
+    {
+      name: '无界书房',
+      address: '怀柔区怀柔科学城',
+      lat: 40.3450, lng: 116.6550,
+      opening_hours: '09:00-19:00',
+      is_free: true,
+      evidence_text: '王府井书店与怀柔科学城合办，“科学家的书房”',
+      source_url: 'http://www.beijing.gov.cn/',
+      district: '怀柔区',
+      facilities: ['自习室', '电源插座', '地铁直达']
     }
   ];
 
