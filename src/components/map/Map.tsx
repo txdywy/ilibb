@@ -38,63 +38,80 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
   const heatmapInstance = useRef<any>(null);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    let retryCount = 0;
+    const maxRetries = 20;
 
-    // @ts-ignore
-    const AMap = window.AMap;
-    if (!AMap) {
-      console.error('AMap is not loaded');
-      return;
-    }
+    const initMap = () => {
+      if (!mapRef.current) return;
 
-    mapInstance.current = new AMap.Map(mapRef.current, {
-      zoom: 11,
-      center: [116.397428, 39.90923],
-      mapStyle: 'amap://styles/dark', // Cool dark mode
-      viewMode: '3D',
-      pitch: 45, // 3D Tilt
-    });
-
-    // Load Geolocation Plugin
-    AMap.plugin('AMap.Geolocation', function() {
-      const geolocation = new AMap.Geolocation({
-        enableHighAccuracy: true,
-        timeout: 10000,
-        position: 'RB',
-        offset: [20, 20],
-        zoomToAccuracy: true,
-        buttonPosition: 'RB'
-      });
-      mapInstance.current.addControl(geolocation);
-    });
-
-    // Load Heatmap Plugin
-    AMap.plugin('AMap.Heatmap', function() {
-      heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
-        radius: 25,
-        opacity: [0, 0.8],
-        gradient: {
-          0.5: 'blue',
-          0.65: 'rgb(117,211,248)',
-          0.7: 'rgb(0,255,0)',
-          0.9: '#ffea00',
-          1.0: '#ff0000'
+      // @ts-ignore
+      const AMap = window.AMap;
+      if (!AMap) {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(initMap, 500); 
         }
-      });
-    });
+        return;
+      }
+
+      if (mapInstance.current) return;
+
+      try {
+        mapInstance.current = new AMap.Map(mapRef.current, {
+          zoom: 11,
+          center: [116.397428, 39.90923],
+          mapStyle: 'amap://styles/dark', 
+          viewMode: '3D',
+          pitch: 45,
+        });
+
+        AMap.plugin(['AMap.Geolocation', 'AMap.Heatmap'], function() {
+          if (!mapInstance.current) return;
+          
+          const geolocation = new AMap.Geolocation({
+            enableHighAccuracy: true,
+            timeout: 10000,
+            position: 'RB',
+            offset: [20, 20],
+            zoomToAccuracy: true,
+            buttonPosition: 'RB'
+          });
+          mapInstance.current.addControl(geolocation);
+
+          heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
+            radius: 25,
+            opacity: [0, 0.8],
+            gradient: {
+              0.5: 'blue',
+              0.65: 'rgb(117,211,248)',
+              0.7: 'rgb(0,255,0)',
+              0.9: '#ffea00',
+              1.0: '#ff0000'
+            }
+          });
+        });
+      } catch (e) {
+        console.error('AMap Map creation failed:', e);
+      }
+    };
+
+    initMap();
 
     return () => {
       if (mapInstance.current) {
         mapInstance.current.destroy();
+        mapInstance.current = null;
       }
     };
   }, []);
 
   useEffect(() => {
-    if (!mapInstance.current || !libraries.length) return;
+    if (!mapInstance.current) return;
 
     // @ts-ignore
     const AMap = window.AMap;
+    if (!AMap) return;
+
     mapInstance.current.clearMap();
 
     if (showHeatmap && heatmapInstance.current) {

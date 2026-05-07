@@ -34,6 +34,7 @@ const getEmojiForFacility = (f: string) => {
 
 function App() {
   const [libraries, setLibraries] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedLib, setSelectedLib] = useState<any>(null);
   const [filterDistrict, setFilterDistrict] = useState<string>('全部');
   const [filterTag, setFilterTag] = useState<string>('全部');
@@ -42,8 +43,14 @@ function App() {
   useEffect(() => {
     fetch('data/libraries.json')
       .then(res => res.json())
-      .then(data => setLibraries(data))
-      .catch(err => console.error('Failed to load libraries:', err));
+      .then(data => {
+        setLibraries(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load libraries:', err);
+        setLoading(false);
+      });
   }, []);
 
   const districts = useMemo(() => ['全部', ...Array.from(new Set(libraries.map((l: any) => l.district))).filter(Boolean)], [libraries]);
@@ -85,6 +92,15 @@ function App() {
     const uri = `https://uri.amap.com/marker?position=${lib.lng},${lib.lat}&name=${encodeURIComponent(lib.name)}&coordinate=gaode&callnative=1`;
     window.open(uri, '_blank');
   };
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loader"></div>
+        <p>正在拉取北京图书馆实时数据...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
