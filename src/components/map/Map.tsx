@@ -36,13 +36,15 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const heatmapInstance = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
 
+  // 1. Initial Map Setup
   useEffect(() => {
     let retryCount = 0;
     const maxRetries = 20;
 
     const initMap = () => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || mapInstance.current) return;
 
       // @ts-ignore
       const AMap = window.AMap;
@@ -54,8 +56,6 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
         return;
       }
 
-      if (mapInstance.current) return;
-
       try {
         mapInstance.current = new AMap.Map(mapRef.current, {
           zoom: 11,
@@ -65,6 +65,7 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
           pitch: 45,
         });
 
+        // Load Plugins
         AMap.plugin(['AMap.Geolocation', 'AMap.Heatmap'], function() {
           if (!mapInstance.current) return;
           
@@ -78,6 +79,7 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
           });
           mapInstance.current.addControl(geolocation);
 
+          // Initialize Heatmap but don't show yet
           heatmapInstance.current = new AMap.Heatmap(mapInstance.current, {
             radius: 25,
             opacity: [0, 0.8],
@@ -105,29 +107,17 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
     };
   }, []);
 
+  // 2. Markers Management (Separated from Map Init)
   useEffect(() => {
     if (!mapInstance.current) return;
-
+    
     // @ts-ignore
     const AMap = window.AMap;
     if (!AMap) return;
 
-    mapInstance.current.clearMap();
-
-    if (showHeatmap && heatmapInstance.current) {
-      const heatmapData = libraries.map(lib => ({
-        lng: lib.lng,
-        lat: lib.lat,
-        count: lib.score?.total || 70
-      }));
-      heatmapInstance.current.setDataSet({
-        data: heatmapData,
-        max: 100
-      });
-      heatmapInstance.current.show();
-    } else if (heatmapInstance.current) {
-      heatmapInstance.current.hide();
-    }
+    // Clear old markers
+    markersRef.current.forEach(m => m.setMap(null));
+    markersRef.current = [];
 
     libraries.forEach((lib) => {
       const score = lib.score?.total || 0;
@@ -205,7 +195,7 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
         map: mapInstance.current,
         zIndex: zIndex,
         content: `
-          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale}; opacity: ${showHeatmap ? 0.4 : 1};">
+          <div class="custom-marker-wrapper" style="--m-color: ${glowColor}; --m-glow: ${glowSize}; --m-scale: ${scale}; opacity: ${showHeatmap ? 0.3 : 1};">
             ${emojiHtml}
             <div class="amap-marker-glow"></div>
           </div>
@@ -216,8 +206,30 @@ const Map: React.FC<MapProps> = ({ libraries, onMarkerClick, showHeatmap = false
       marker.on('click', () => {
         onMarkerClick(lib);
       });
+      
+      markersRef.current.push(marker);
     });
   }, [libraries, onMarkerClick, showHeatmap]);
+
+  // 3. Heatmap Toggle Logic (Pure Show/Hide, no clearMap)
+  useEffect(() => {
+    if (!heatmapInstance.current) return;
+
+    if (showHeatmap) {
+      const heatmapData = libraries.map(lib => ({
+        lng: lib.lng,
+        lat: lib.lat,
+        count: lib.score?.total || 70
+      }));
+      heatmapInstance.current.setDataSet({
+        data: heatmapData,
+        max: 100
+      });
+      heatmapInstance.current.show();
+    } else {
+      heatmapInstance.current.hide();
+    }
+  }, [showHeatmap, libraries]);
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
 };
