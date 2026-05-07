@@ -24,7 +24,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
   const markersRef = useRef<any[]>([]);
   const isInitializingHeatmap = useRef(false);
 
-  // 1. Core Map Initialization
+  // 1. Initial Setup
   useEffect(() => {
     let retryCount = 0;
     const initMap = () => {
@@ -58,7 +58,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     };
   }, []);
 
-  // 2. Markers Rendering
+  // 2. Markers
   useEffect(() => {
     if (!mapInstance.current) return;
     // @ts-ignore
@@ -113,7 +113,7 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     });
   }, [libraries, onMarkerClick]);
 
-  // 3. Final HeatMap Fix (Using AMap.HeatMap with capital M)
+  // 3. Final Calibration for HeatMap Visibility
   useEffect(() => {
     const mapContainer = mapRef.current;
     if (!mapContainer || !mapInstance.current) return;
@@ -123,54 +123,55 @@ const Map: React.FC<MapProps> = ({ libraries = [], onMarkerClick, showHeatmap = 
     if (showHeatmap) {
       mapContainer.classList.add('heatmap-mode');
       
-      const startHeatmap = () => {
+      const activate = () => {
         const hm = heatmapInstance.current;
-        if (!hm) return;
-        
-        // Critical: Check for HeatMap (capital M) method
-        if (typeof hm.setDataSet !== 'function') {
-           console.error('[HeatMap] setDataSet missing. Re-initializing with capital M...');
-           heatmapInstance.current = null;
-           return;
-        }
+        if (!hm || typeof hm.setDataSet !== 'function') return;
 
+        // Visual Calibration: Standardize counts and data
         const data = libraries.filter(l => l.lng && l.lat).map(l => ({
           lng: Number(l.lng), lat: Number(l.lat), count: 100
         }));
 
         try {
+          // AMap 2.0 HeatMap Hack: Re-attach and high zIndex
           hm.setDataSet({ data, max: 100 });
           hm.setMap(mapInstance.current);
-          hm.show();
-          console.log('[HeatMap] Visualization Active');
+          if (typeof hm.show === 'function') hm.show();
+          console.log('[HeatMap] Visibility Boosted');
         } catch (e) {
-          console.error('[HeatMap] Execution error:', e);
+          console.error('[HeatMap] Render error:', e);
         }
       };
 
       if (!heatmapInstance.current && !isInitializingHeatmap.current) {
         isInitializingHeatmap.current = true;
-        console.log('[HeatMap] Loading AMap.HeatMap plugin...');
-        // Note: AMap.plugin still uses the string name
         AMap.plugin(['AMap.HeatMap'], () => {
-          // Use the capital M constructor for 2.0
           const HeatMapClass = AMap.HeatMap || AMap.Heatmap;
           if (HeatMapClass) {
             heatmapInstance.current = new HeatMapClass(mapInstance.current, {
-              radius: 50, opacity: [0, 0.9], zIndex: 10,
-              gradient: { 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
+              radius: 60, // Enormous radius
+              opacity: [0, 1.0], // Full opacity
+              zIndex: 3000, // Top of the world
+              gradient: {
+                0.2: 'blue',
+                0.4: 'cyan',
+                0.6: 'lime',
+                0.8: 'yellow',
+                1.0: 'red'
+              }
             });
           }
           isInitializingHeatmap.current = false;
-          startHeatmap();
+          activate();
         });
       } else {
-        startHeatmap();
+        activate();
       }
     } else {
       mapContainer.classList.remove('heatmap-mode');
-      if (heatmapInstance.current && typeof heatmapInstance.current.hide === 'function') {
-        heatmapInstance.current.hide();
+      if (heatmapInstance.current) {
+        if (typeof heatmapInstance.current.hide === 'function') heatmapInstance.current.hide();
+        if (typeof heatmapInstance.current.setMap === 'function') heatmapInstance.current.setMap(null);
       }
     }
   }, [showHeatmap, libraries]);
